@@ -1,0 +1,216 @@
+﻿import { API_BASE } from "./config.js";
+
+const byId = (id) => document.getElementById(id);
+const escapeHtml = (value = "") => String(value).replace(/[&<>\"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#039;" }[character]));
+
+const showPageMessageModal = ({ title = "Notice", message = "Something happened.", buttonText = "OK" } = {}) => {
+  let modal = document.getElementById("pageMessageModal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "pageMessageModal";
+    modal.className = "page-message-modal";
+    modal.hidden = true;
+    modal.innerHTML = `
+      <div class="page-message-modal-backdrop" data-close-page-message="true"></div>
+      <div class="page-message-modal-card" role="dialog" aria-modal="true" aria-labelledby="pageMessageTitle">
+        <div class="page-message-modal-header">
+          <h3 id="pageMessageTitle">Notice</h3>
+          <button type="button" class="page-message-modal-close" data-close-page-message="true" aria-label="Close message"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+        </div>
+        <p class="page-message-modal-message"></p>
+        <div class="page-message-modal-actions">
+          <button type="button" class="page-message-modal-button" data-close-page-message="true">OK</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    modal.addEventListener("click", (event) => {
+      if (event.target.closest("[data-close-page-message]")) {
+        modal.hidden = true;
+        document.body.classList.remove("page-modal-open");
+      }
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !modal.hidden) {
+        modal.hidden = true;
+        document.body.classList.remove("page-modal-open");
+      }
+    });
+  }
+
+  modal.querySelector("#pageMessageTitle").textContent = title;
+  modal.querySelector(".page-message-modal-message").textContent = message;
+  modal.querySelector(".page-message-modal-button").textContent = buttonText;
+  modal.hidden = false;
+  document.body.classList.add("page-modal-open");
+};
+
+const navigation = document.querySelector("nav");
+const menuToggle = document.querySelector(".menu-toggle");
+if (menuToggle && navigation) {
+  menuToggle.addEventListener("click", () => { const open = navigation.classList.toggle("nav-open"); menuToggle.setAttribute("aria-expanded", String(open)); menuToggle.innerHTML = `<i class="fa-solid fa-${open ? "xmark" : "bars"}"></i>`; });
+  navigation.querySelectorAll("ul a").forEach((link) => link.addEventListener("click", () => { navigation.classList.remove("nav-open"); menuToggle.setAttribute("aria-expanded", "false"); menuToggle.innerHTML = '<i class="fa-solid fa-bars"></i>'; }));
+}
+
+const bookingForm = byId("bookingForm");
+if (bookingForm) bookingForm.addEventListener("submit", async (event) => {
+  event.preventDefault(); const button = bookingForm.querySelector("button[type=submit]"); const original = button.innerHTML; button.disabled = true; button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+  try { const response = await fetch(`${API_BASE}/api/bookings`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.fromEntries(new FormData(bookingForm))) }); const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.error || "Booking failed."); showPageMessageModal({ title: "Booking sent", message: "Booking sent successfully. Check your email for confirmation.", buttonText: "Great" }); bookingForm.reset(); } catch (error) { showPageMessageModal({ title: "Booking failed", message: error.message || "Booking failed.", buttonText: "Try again" }); } finally { button.disabled = false; button.innerHTML = original; }
+});
+
+const videoModal = byId("videoModal"); const previewVideo = byId("previewVideo"); const previewYoutube = byId("previewYoutube");
+const previewControls = byId("previewControls"); const previewPlay = byId("previewPlay"); const previewProgress = byId("previewProgress"); const previewTime = byId("previewTime");
+const videoContainer = byId("videoContainer");
+let videoIndex = 0;
+
+function updateVideoSlider() {
+  if (!videoContainer) return;
+  const cards = [...videoContainer.querySelectorAll(".video-card")];
+  const visible = window.innerWidth <= 700 ? 1 : 3;
+  const maxIndex = Math.max(0, cards.length - visible);
+  videoIndex = Math.min(videoIndex, maxIndex);
+  const width = cards[0] ? cards[0].getBoundingClientRect().width + (window.innerWidth <= 700 ? 8 : 15) : 0;
+  videoContainer.style.transform = `translateX(-${videoIndex * width}px)`;
+  const progress = byId("videoSliderProgress");
+  const count = byId("videoSliderCount");
+  if (progress) progress.style.width = `${cards.length ? ((videoIndex + visible) / cards.length) * 100 : 100}%`;
+  if (count) count.textContent = `${String(Math.min(videoIndex + 1, cards.length)).padStart(2, "0")} / ${String(cards.length).padStart(2, "0")}`;
+}
+function moveVideoSlider(direction) {
+  const count = videoContainer?.querySelectorAll(".video-card").length || 0;
+  const visible = window.innerWidth <= 700 ? 1 : 3;
+  const maxIndex = Math.max(0, count - visible);
+  videoIndex += direction;
+  if (videoIndex > maxIndex) videoIndex = 0;
+  if (videoIndex < 0) videoIndex = maxIndex;
+  updateVideoSlider();
+}
+document.querySelector(".video-slider-prev")?.addEventListener("click", () => moveVideoSlider(-1));
+document.querySelector(".video-slider-next")?.addEventListener("click", () => moveVideoSlider(1));
+window.addEventListener("resize", updateVideoSlider);
+window.setInterval(() => moveVideoSlider(1), 6000);
+function closeVideoPreview() { if (!videoModal) return; previewVideo.pause(); previewVideo.removeAttribute("src"); previewVideo.load(); previewYoutube.hidden = true; previewYoutube.removeAttribute("src"); previewVideo.hidden = false; previewControls.hidden = false; videoModal.hidden = true; document.body.classList.remove("video-modal-open"); }
+function openVideoPreview(card) { const source = card.dataset.videoUrl; const youtubeId = card.dataset.youtubeId; if (!videoModal || (!source && !youtubeId)) return; byId("videoModalTitle").textContent = card.querySelector("h3")?.textContent || "FOBIbass Performance"; videoModal.hidden = false; document.body.classList.add("video-modal-open"); if (youtubeId) { previewVideo.hidden = true; previewControls.hidden = true; previewYoutube.hidden = false; previewYoutube.src = `https://www.youtube.com/embed/${encodeURIComponent(youtubeId)}?autoplay=1&rel=0&controls=1`; } else { previewYoutube.hidden = true; previewControls.hidden = false; previewVideo.hidden = false; previewVideo.src = source; previewVideo.play().catch(() => {}); } }
+previewPlay?.addEventListener("click", () => { if (previewVideo.paused) previewVideo.play(); else previewVideo.pause(); });
+previewVideo?.addEventListener("play", () => { if (previewPlay) previewPlay.innerHTML = '<i class="fa-solid fa-pause"></i>'; });
+previewVideo?.addEventListener("pause", () => { if (previewPlay) previewPlay.innerHTML = '<i class="fa-solid fa-play"></i>'; });
+previewVideo?.addEventListener("timeupdate", () => { if (!previewVideo.duration) return; previewProgress.value = String((previewVideo.currentTime / previewVideo.duration) * 100); const seconds = Math.floor(previewVideo.currentTime); if (previewTime) previewTime.textContent = `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`; });
+previewProgress?.addEventListener("input", () => { if (previewVideo.duration) previewVideo.currentTime = (Number(previewProgress.value) / 100) * previewVideo.duration; });
+document.addEventListener("click", (event) => { const play = event.target.closest(".video-play"); if (play) openVideoPreview(play.closest(".video-card")); if (event.target.closest("[data-close-video]")) closeVideoPreview(); });
+document.addEventListener("keydown", (event) => { if (event.key === "Escape") { closeVideoPreview(); closeTestimonialForm(); } });
+
+const testimonialModal = byId("testimonialModal"); const testimonialForm = byId("testimonialForm"); const ratingStars = document.querySelectorAll(".rating-star");
+function closeTestimonialForm() { if (testimonialModal) { testimonialModal.hidden = true; document.body.classList.remove("video-modal-open"); } }
+function openTestimonialForm() { if (testimonialModal) { testimonialModal.hidden = false; document.body.classList.add("video-modal-open"); byId("testimonialName")?.focus(); } }
+function setRating(value) { ratingStars.forEach((star) => { star.classList.toggle("is-selected", Number(star.dataset.rating) <= Number(value)); star.setAttribute("aria-checked", String(Number(star.dataset.rating) === Number(value))); }); byId("testimonialRatingValue").value = value; byId("ratingCaption").textContent = `${value} / 5`; }
+ratingStars.forEach((star) => star.addEventListener("click", () => setRating(star.dataset.rating)));
+document.addEventListener("click", (event) => { if (event.target.closest("[data-open-testimonial]")) openTestimonialForm(); if (event.target.closest("[data-close-testimonial]")) closeTestimonialForm(); });
+if (testimonialForm) testimonialForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const formData = new FormData(testimonialForm);
+  const payload = {
+    name: String(formData.get("testimonialName") || "").trim(),
+    message: String(formData.get("testimonialMessage") || "").trim(),
+    rating: Number(formData.get("testimonialRatingValue") || 5),
+  };
+
+  const status = byId("testimonialFormStatus");
+  if (!payload.name || !payload.message) {
+    if (status) status.textContent = "Please complete your name and experience before submitting.";
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/api/content/testimonials`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "Unable to save your testimonial.");
+    if (status) status.textContent = "Thank you. Your experience has been received.";
+    testimonialForm.reset();
+    setRating(5);
+    await hydrateSiteContent();
+  } catch (error) {
+    if (status) status.textContent = error.message || "Unable to save your testimonial.";
+  }
+});
+
+async function refreshYoutubeStats() { try { const response = await fetch(`${API_BASE}/api/youtube/stats`); if (!response.ok) return; const stats = await response.json(); byId("youtubeHandle").textContent = stats.handle; byId("youtubeHandle").href = stats.url; byId("youtubeSubscribers").textContent = new Intl.NumberFormat("en-US").format(stats.subscribers); byId("youtubeVideos").textContent = new Intl.NumberFormat("en-US").format(stats.videos); byId("youtubeViews").textContent = new Intl.NumberFormat("en-US").format(stats.views); } catch (error) { console.warn("YouTube stats unavailable", error.message); } }
+async function loadYoutubeVideos() { const container = byId("videoContainer"); if (!container) return; try { const response = await fetch(`${API_BASE}/api/youtube/videos`); if (!response.ok) { updateVideoSlider(); return; } const data = await response.json(); const cards = (data.videos || []).map((video) => `<article class="video-card video-card-youtube" data-youtube-id="${escapeHtml(video.id)}"><div class="video-poster" style="background-image:url('${escapeHtml(video.thumbnail || "")}')"><button class="video-play" type="button" aria-label="Play video"><i class="fa-solid fa-play"></i></button><span class="video-label">YouTube</span></div><h3>${escapeHtml(video.title)}</h3><p>Latest upload on @FOBIbass</p></article>`).join(""); if (cards) { container.querySelectorAll("[data-local-video]").forEach((card) => card.remove()); container.insertAdjacentHTML("beforeend", cards); } updateVideoSlider(); } catch (error) { console.warn("YouTube videos unavailable; showing local videos.", error.message); updateVideoSlider(); } }
+async function hydrateSiteContent() {
+  try {
+    const response = await fetch(`${API_BASE}/api/content`);
+    if (!response.ok) return;
+    const data = await response.json();
+    const settings = data.settings || {};
+    const hero = settings.hero || {};
+    const bio = settings.bio || {};
+    const contact = settings.contact || {};
+    const socials = settings.socials || {};
+
+    if (byId("heroTitle")) byId("heroTitle").innerHTML = hero.title || byId("heroTitle").innerHTML;
+    if (byId("heroSubtitle")) byId("heroSubtitle").textContent = hero.subtitle || byId("heroSubtitle").textContent;
+    if (byId("bioText")) byId("bioText").textContent = bio.bio || byId("bioText").textContent;
+    if (byId("contactPhone")) byId("contactPhone").innerHTML = `<i class="fa-solid fa-phone"></i> ${contact.phone || byId("contactPhone").textContent.replace(/^\s*.*?\s/, "")}`;
+    if (byId("contactEmail")) byId("contactEmail").innerHTML = `<i class="fa-regular fa-envelope"></i> ${contact.email || byId("contactEmail").textContent.replace(/^\s*.*?\s/, "")}`;
+    if (byId("contactLocation")) byId("contactLocation").innerHTML = `<i class="fa-solid fa-location-dot"></i> ${contact.location || byId("contactLocation").textContent.replace(/^\s*.*?\s/, "")}`;
+
+    const socialLinkTargets = {
+      youtube: document.querySelector('.social-links a[aria-label="YouTube"]'),
+      instagram: document.querySelector('.social-links a[aria-label="Instagram"]'),
+      tiktok: document.querySelector('.social-links a[aria-label="TikTok"]'),
+      x: document.querySelector('.social-links a[aria-label="X"]'),
+    };
+
+    if (socialLinkTargets.youtube) socialLinkTargets.youtube.href = socials.youtube || 'https://www.youtube.com/@FOBIbass';
+    if (socialLinkTargets.instagram) socialLinkTargets.instagram.href = socials.instagram || '#contact';
+    if (socialLinkTargets.tiktok) socialLinkTargets.tiktok.href = socials.tiktok || 'https://www.tiktok.com/@fobi_bass?_r=1&_t=ZS-99gMTwWcj2G';
+    if (socialLinkTargets.x) socialLinkTargets.x.href = socials.x || '#contact';
+
+    const serviceContainer = byId("serviceContainer");
+    if (serviceContainer && Array.isArray(data.services) && data.services.length) {
+      serviceContainer.innerHTML = data.services.map((service) => `
+        <article class="service-card">
+          <h3>${escapeHtml(service.name)}</h3>
+          <p>${escapeHtml(service.description || "")}</p>
+        </article>
+      `).join("");
+    }
+
+    const testimonialContainer = byId("testimonialContainer");
+    if (testimonialContainer && Array.isArray(data.testimonials) && data.testimonials.length) {
+      const defaultFallback = testimonialContainer.querySelector("[data-fallback]");
+      if (defaultFallback) defaultFallback.remove();
+      testimonialContainer.innerHTML = data.testimonials.map((testimonial) => `
+        <article class="testimonial-card">
+          <div class="testimonial-meta">
+            <strong>${escapeHtml(testimonial.name)}</strong>
+            <span>${"★".repeat(Number(testimonial.rating || 5))}</span>
+          </div>
+          <p>${escapeHtml(testimonial.message)}</p>
+        </article>
+      `).join("");
+    }
+
+    const calendar = byId("calendar");
+    if (calendar && Array.isArray(data.availability) && data.availability.length) {
+      calendar.innerHTML = data.availability.map((item) => `
+        <div class="availability-pill">
+          <span>${escapeHtml(item.date)}</span>
+          <strong>${escapeHtml(item.status || "available")}</strong>
+          <em>${escapeHtml(item.event || "General availability")}</em>
+        </div>
+      `).join("");
+    }
+  } catch (error) {
+    console.warn("Site content unavailable", error.message);
+  }
+}
+
+if (byId("youtubeSubscribers")) { refreshYoutubeStats(); window.setInterval(refreshYoutubeStats, 15 * 60 * 1000); }
+updateVideoSlider();
+hydrateSiteContent();
+loadYoutubeVideos();
+

@@ -1,0 +1,631 @@
+﻿<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+<title>
+Fobee Bass Manager Dashboard
+</title>
+
+
+<link rel="stylesheet" href="manager.css">
+<link rel="stylesheet" href="manager-premium.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+
+</head>
+
+
+
+<body>
+  
+  <section class="admin-profile">
+
+    <div class="admin-profile-main">
+      <div class="profile-header">
+        <div class="profile-heading">
+          <h2>
+            Admin Profile
+          </h2>
+          <p>Account overview and security controls</p>
+        </div>
+
+        <div class="profile-badges" aria-label="Admin account status">
+          <span class="profile-badge profile-badge--accent">
+            <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+            Admin Access
+          </span>
+          <span class="profile-badge profile-badge--muted">
+            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+            Secure Session
+          </span>
+        </div>
+      </div>
+
+      <div class="profile-row">
+        <span class="profile-label">Email:</span>
+        <span id="adminEmail" class="profile-value">Loading...</span>
+      </div>
+
+      <div class="profile-row profile-row--highlight">
+        <span class="profile-label">Last Login:</span>
+        <span id="lastLogin" class="profile-value">Loading...</span>
+      </div>
+
+      <form id="passwordForm" class="password-form">
+        <h3><i class="fa-solid fa-key" aria-hidden="true"></i> Change Password</h3>
+        <div class="form-grid password-grid">
+          <input id="currentPassword" name="currentPassword" type="password" placeholder="Current password" required>
+          <input id="newPassword" name="newPassword" type="password" placeholder="New password" required>
+        </div>
+        <button type="submit">Update Password</button>
+      </form>
+    </div>
+
+    <div class="admin-profile-actions">
+      <label class="biometric-toggle">
+        <span class="toggle-copy">Enable biometric sign-in for this admin account</span>
+        <span class="toggle-control">
+          <input type="checkbox" id="biometricToggle">
+          <span class="toggle-slider"></span>
+        </span>
+      </label>
+
+      <p class="biometric-status" id="biometricStatusText">Biometric sign-in is currently off for this account.</p>
+
+      <button id="profileLogoutBtn">
+        Logout
+      </button>
+    </div>
+
+</section>
+  
+  
+  <div class="notifications">
+
+<h2 class="notification-header">
+
+ðŸ”” Notifications
+
+<span id="notificationBadge">
+0
+</span>
+
+</h2>
+
+
+<div id="notificationList">
+
+No new notifications
+
+</div>
+
+
+</div>
+
+
+
+<!-- ================= HEADER ================= -->
+
+
+<header>
+
+
+<h1>
+<i class="fa-solid fa-wave-square" aria-hidden="true"></i> FOBIbass Manager Dashboard
+</h1>
+
+
+<p>
+Control your website content and bookings
+</p>
+
+
+<button id="logoutBtn">
+
+Logout
+
+</button>
+
+</header>
+
+
+
+
+
+
+
+<main>
+
+
+
+
+
+<!-- ================= STATS ================= -->
+
+
+<section>
+
+
+<h2>
+Dashboard Overview
+</h2>
+
+
+
+<div class="stats-grid">
+
+
+<div class="stat-card">
+
+<h3 id="bookingCount">
+0
+</h3>
+
+<p>
+Total Bookings
+</p>
+
+</div>
+
+
+
+<div class="stat-card">
+
+<h3 id="pendingCount">
+0
+</h3>
+
+<p>
+Pending
+</p>
+
+</div>
+
+
+
+
+<div class="stat-card">
+
+<h3 id="approvedCount">
+0
+</h3>
+
+<p>
+Approved
+</p>
+
+</div>
+
+
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+
+
+<!-- ================= BOOKINGS ================= -->
+<section class="booking-section">
+
+
+<h2><i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Bookings</h2>
+
+
+<div class="booking-tools">
+
+  <div class="booking-search-wrap">
+    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+    <input
+      type="text"
+      id="bookingSearch"
+      aria-label="Search bookings"
+      placeholder="Search by name, email, event...">
+  </div>
+
+  <div class="booking-filter-wrap">
+    <button type="button" id="bookingFilterButton" class="booking-filter-button" aria-expanded="false" aria-haspopup="listbox">
+      <span class="booking-filter-icon"><i class="fa-solid fa-filter" aria-hidden="true"></i></span>
+      <span class="booking-filter-selected" id="bookingFilterCurrent">All Bookings</span>
+      <i class="fa-solid fa-chevron-down booking-filter-caret" aria-hidden="true"></i>
+    </button>
+
+    <input type="hidden" id="bookingFilter" value="All">
+
+    <div id="bookingFilterMenu" class="booking-filter-menu" role="menu" aria-label="Booking filter options">
+      <button type="button" role="menuitem" class="booking-filter-option is-active" data-value="All">All Bookings</button>
+      <button type="button" role="menuitem" class="booking-filter-option" data-value="Pending">Pending</button>
+      <button type="button" role="menuitem" class="booking-filter-option" data-value="Approved">Approved</button>
+      <button type="button" role="menuitem" class="booking-filter-option" data-value="Rejected">Rejected</button>
+      <button type="button" role="menuitem" class="booking-filter-option" data-value="Completed">Completed</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="booking-table-wrap">
+  <table>
+
+    <thead>
+
+      <tr>
+
+        <th>Name</th>
+
+        <th>Email</th>
+
+        <th>Phone</th>
+
+        <th>Event</th>
+
+        <th>Date</th>
+
+        <th>Location</th>
+
+        <th>Status</th>
+
+      </tr>
+
+    </thead>
+
+    <tbody id="bookingTable">
+
+    </tbody>
+
+  </table>
+</div>
+
+
+</section>
+  
+  <section>
+
+<h2><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> Manage Availability</h2>
+
+
+<form id="availabilityForm">
+
+
+<input 
+id="availableDate"
+aria-label="Availability date"
+type="date"
+>
+
+
+<select id="availabilityStatus" aria-label="Availability status">
+
+<option value="available">
+Available
+</option>
+
+
+<option value="booked">
+Booked
+</option>
+
+
+</select>
+
+
+<input
+id="availabilityEvent"
+aria-label="Availability event"
+placeholder="Event name"
+>
+
+
+<button type="button">
+<i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+Save Date
+</button>
+
+
+</form>
+
+
+<div id="availabilityList">
+
+</div>
+
+
+</section>
+<!-- ================= HERO EDIT ================= -->
+<section>
+
+<h2><i class="fa-solid fa-panorama" aria-hidden="true"></i> <i class="fa-solid fa-panorama" aria-hidden="true"></i> Update Hero</h2>
+
+<form id="heroForm">
+
+<input 
+id="heroTitle"
+placeholder="Hero Title"
+>
+
+<input 
+id="heroSubtitle"
+placeholder="Hero Subtitle"
+>
+
+<button type="button">
+<i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+Update Hero
+</button>
+
+</form>
+
+</section>
+<!-- ================= ABOUT ================= -->
+<section>
+
+<h2><i class="fa-solid fa-user-pen" aria-hidden="true"></i> Update Biography</h2>
+
+
+<form id="bioForm">
+
+<textarea 
+id="bioText"
+placeholder="Biography">
+</textarea>
+
+
+<button type="button">
+<i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+Update Biography
+</button>
+
+
+</form>
+
+</section>
+<!-- ================= VIDEOS ================= -->
+<section>
+
+
+<h2><i class="fa-solid fa-video" aria-hidden="true"></i> Videos</h2>
+
+
+<form id="videoForm" class="video-form">
+
+<div class="form-grid compact-grid">
+
+<input
+id="videoTitle"
+placeholder="Video Title"
+>
+
+<input
+id="videoCategory"
+placeholder="Category"
+>
+
+</div>
+
+<div class="upload-panel">
+  <label class="upload-dropzone" for="videoFile">
+    <input id="videoFile" type="file" accept="video/*" required>
+    <span class="upload-icon"><i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i></span>
+    <span class="upload-text">Choose video file</span>
+  </label>
+
+  <label class="upload-dropzone secondary" for="videoCoverFile">
+    <input id="videoCoverFile" type="file" accept="image/*">
+    <span class="upload-icon"><i class="fa-solid fa-image" aria-hidden="true"></i></span>
+    <span class="upload-text">Optional cover image</span>
+  </label>
+</div>
+
+<p id="videoUploadStatus" class="upload-status" role="status"></p>
+
+<button type="submit">
+<i class="fa-solid fa-upload" aria-hidden="true"></i>
+Save Video
+</button>
+
+
+</form>
+
+
+
+<div id="videoList" class="video-list">
+
+</div>
+
+
+</section>
+<!-- ================= SERVICES ================= -->
+<section>
+
+
+<h2><i class="fa-solid fa-briefcase" aria-hidden="true"></i> Services</h2>
+
+
+<form id="serviceForm">
+
+
+<input
+id="serviceName"
+placeholder="Service Name"
+>
+
+
+<textarea
+id="serviceDescription"
+placeholder="Service Description">
+</textarea>
+
+
+<button type="button">
+<i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+Save Service
+</button>
+
+
+</form>
+
+
+
+<div id="serviceList">
+
+</div>
+
+
+</section>
+<!-- ================= QUICK ACTIONS ================= -->
+  <section>
+
+
+<h2><i class="fa-solid fa-bolt" aria-hidden="true"></i> Quick Actions</h2>
+
+<div class="quick-actions-grid">
+  <div class="quick-action-card">
+    <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+    <div>
+      <strong>Manage availability</strong>
+      <span>Update your schedule, event dates, and openings.</span>
+    </div>
+  </div>
+
+  <div class="quick-action-card">
+    <i class="fa-solid fa-video" aria-hidden="true"></i>
+    <div>
+      <strong>Publish media</strong>
+      <span>Upload new videos and cover art from the video section.</span>
+    </div>
+  </div>
+
+  <div class="quick-action-card">
+    <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+    <div>
+      <strong>Refresh content</strong>
+      <span>Update hero text, biography, contact details, and services.</span>
+    </div>
+  </div>
+</div>
+
+</section>
+<!-- ================= SOCIALS ================= -->
+<section>
+
+<h2><i class="fa-solid fa-share-nodes" aria-hidden="true"></i> Update Social Links</h2>
+
+
+<form id="socialForm">
+
+<input
+id="socialYoutube"
+name="socialYoutube"
+placeholder="YouTube URL"
+>
+
+
+<input
+id="socialInstagram"
+name="socialInstagram"
+placeholder="Instagram URL"
+>
+
+
+<input
+id="socialTikTok"
+name="socialTikTok"
+placeholder="TikTok URL"
+>
+
+
+<input
+id="socialX"
+name="socialX"
+placeholder="X / Twitter URL"
+>
+
+
+<button type="submit">
+<i class="fa-solid fa-share-nodes" aria-hidden="true"></i>
+Update Social Links
+</button>
+
+
+</form>
+
+</section>
+<!-- ================= CONTACT ================= -->
+<section>
+
+<h2><i class="fa-solid fa-address-book" aria-hidden="true"></i> Update Contact</h2>
+
+
+<form id="contactForm">
+
+
+<input
+id="contactPhone"
+placeholder="Phone"
+>
+
+
+<input
+id="contactEmail"
+placeholder="Email"
+>
+
+
+<input
+id="contactLocation"
+placeholder="Location"
+>
+
+
+<button type="button">
+<i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+Update Contact
+</button>
+
+
+</form>
+
+
+</section>
+
+
+
+
+
+
+</main>
+
+
+
+
+
+
+<footer>
+
+<p>
+Built with passion for music <i class="fa-solid fa-guitar" aria-hidden="true"></i>
+</p>
+
+</footer>
+
+
+
+
+
+
+<script type="module" src="manager.js"></script>
+</body>
+
+
+</html>

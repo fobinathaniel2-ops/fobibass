@@ -1,0 +1,144 @@
+﻿* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: #f4f4f3;
+  font-family: Arial, sans-serif;
+  background:
+    linear-gradient(135deg, rgba(9, 10, 12, 0.78), rgba(18, 19, 21, 0.86)),
+    url('IMG-20260728-WA0019.jpg') center/cover no-repeat fixed;
+}
+
+.login-container {
+  width: min(100%, 430px);
+  padding: clamp(28px, 5vw, 48px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  background: linear-gradient(145deg, rgba(31, 34, 38, 0.94), rgba(13, 14, 16, 0.94));
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.5), inset 0 1px rgba(255, 255, 255, 0.06);
+  text-align: center;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+h1 {
+  margin: 0 0 10px;
+  color: #ffffff;
+  font-size: clamp(28px, 6vw, 42px);
+}
+
+h2 {
+  margin: 0 0 24px;
+  color: #d0d5d9;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+form {
+  display: grid;
+  gap: 12px;
+}
+
+input {
+  width: 100%;
+  min-height: 52px;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #ffffff;
+  font-size: 16px;
+  outline: none;
+}
+
+input:focus {
+  border-color: rgba(255, 215, 0, 0.85);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+button {
+  min-height: 52px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f4cf60, #f0c349);
+  color: #111111;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(240, 195, 73, 0.2);
+}
+
+button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+  transform: none;
+}
+
+.button-spinner {
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+  border: 2px solid rgba(17, 17, 17, 0.35);
+  border-top-color: rgba(17, 17, 17, 1);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+.is-loading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.forgot-password {
+  margin-top: 14px;
+  text-align: center;
+}
+
+.forgot-password a {
+  color: #ffd76a;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.forgot-password a:hover {
+  text-decoration: underline;
+}
+
+#errorMessage {
+  min-height: 20px;
+  margin: 12px 0 0;
+  color: #ff8d8d;
+  font-size: 13px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 16px;
+  }
+
+  .login-container {
+    border-radius: 18px;
+    padding: 24px 18px;
+  }
+}

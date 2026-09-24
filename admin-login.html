@@ -1,0 +1,112 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Fobee Bass Admin Login</title>
+
+<link rel="stylesheet" href="admin-login.css">
+<link rel="stylesheet" href="auth-premium.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+</head>
+
+
+<body>
+
+
+<div class="login-container">
+
+<h1>
+<i class="fa-solid fa-wave-square" aria-hidden="true"></i> FOBIbass
+</h1>
+
+
+<h2>
+Admin Dashboard Login
+</h2>
+
+<p class="auth-subtitle">Sign in to manage bookings, content, media, and your private dashboard.</p>
+
+
+<form id="loginForm">
+
+
+<input
+
+type="email"
+
+id="email"
+
+placeholder="Admin Email"
+
+required
+
+>
+
+
+
+<input
+
+type="password"
+
+id="password"
+
+placeholder="Password"
+
+required
+
+>
+
+
+
+<div class="auth-actions">
+
+<button type="submit" id="loginButton">
+
+<i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i>
+
+Login
+
+</button>
+
+<button type="button" class="secondary-btn" id="biometricLoginBtn" hidden>
+
+<i class="fa-solid fa-fingerprint" aria-hidden="true"></i>
+
+Use Biometric
+
+</button>
+
+</div>
+
+<p class="form-hint" id="biometricStatus">Biometric sign-in is available only after this admin account has been granted access from the dashboard.</p>
+
+<p class="forgot-password">
+    <a href="#" id="forgotPassword">
+        Forgot Password?
+    </a>
+</p>
+
+<p id="errorMessage"></p>
+
+
+</form>
+
+
+</div>
+
+
+
+
+
+<script type="module" src="admin-login.js"></script>
+
+
+</body>
+
+</html>

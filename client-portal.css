@@ -1,0 +1,247 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30px 0;
+  background:
+    radial-gradient(circle at top, rgba(230,184,79,.18), transparent 25%),
+    linear-gradient(135deg, rgba(9,10,12,.92), rgba(19,22,26,.96));
+}
+
+.portal-container {
+  width: min(100%, 500px);
+  padding: clamp(28px, 5vw, 46px);
+  border-radius: 28px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: linear-gradient(145deg, rgba(26,30,34,.92), rgba(11,12,15,.92));
+  box-shadow: 0 28px 90px rgba(0,0,0,.48), inset 0 1px rgba(255,255,255,.06);
+  text-align: center;
+  color: #f5f5f1;
+}
+
+.portal-container h1 {
+  margin-bottom: 6px;
+  color: #f9f4e3;
+  font-size: clamp(30px, 6vw, 44px);
+}
+
+.portal-container h2 {
+  margin-bottom: 20px;
+  color: #d9dde3;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.portal-container form {
+  display: grid;
+  gap: 12px;
+}
+
+.portal-container input {
+  width: 100%;
+  min-height: 52px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.04);
+  color: #fff;
+  font-size: 16px;
+  outline: none;
+}
+
+.portal-container input:focus {
+  border-color: rgba(255,217,120,.85);
+  background: rgba(255,255,255,.065);
+  box-shadow: 0 0 0 3px rgba(230,184,79,.12);
+}
+
+.portal-container button,
+.portal-container .link-btn {
+  width: 100%;
+  min-height: 52px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
+}
+
+.portal-container button {
+  background: linear-gradient(135deg, #f4d98a, #e6b84f);
+  color: #111;
+}
+
+.portal-container button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(230,184,79,.24);
+}
+
+.portal-container button:disabled {
+  opacity: .65;
+  cursor: wait;
+  transform: none;
+}
+
+.portal-container .link-btn {
+  margin-top: 8px;
+  background: transparent;
+  color: #ffd978;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.portal-container .link-btn:hover {
+  background: transparent;
+  box-shadow: none;
+}
+
+.portal-container .error-text,
+.portal-container #errorMessage {
+  min-height: 20px;
+  margin-top: 12px;
+  color: #ff9a9a;
+  font-size: 13px;
+}
+
+.portal-container .success-text {
+  margin-top: 12px;
+  color: #9fe5b2;
+  font-size: 13px;
+}
+
+.portal-container .step {
+  display: none;
+}
+
+.portal-container .step.active {
+  display: block;
+}
+
+.portal-container .booking-card {
+  background: rgba(17,18,21,.82);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 18px;
+  padding: 22px;
+  margin: 18px 0;
+  text-align: left;
+  box-shadow: inset 0 1px rgba(255,255,255,.03);
+}
+
+.portal-container .booking-card .row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  color: #f3f4f5;
+  font-size: 14px;
+}
+
+.portal-container .booking-card .row:last-child {
+  border-bottom: none;
+}
+
+.portal-container .booking-card .label {
+  color: #b5bcc5;
+}
+
+.portal-container .calendar-links {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.portal-container .calendar-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,217,120,.5);
+  background: rgba(230,184,79,.08);
+  color: #ffd978;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.portal-container .loading-text {
+  color: #ccc;
+}
+
+.portal-container .hidden {
+  display: none;
+}
+
+.portal-container .calendar-links-top {
+  margin-top: 16px;
+}
+
+.portal-container .logout-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+  color: #ffd978;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.portal-container .logout-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 18px;
+  }
+
+  .portal-container {
+    padding: 26px 18px;
+    border-radius: 20px;
+  }
+
+  .portal-container .booking-card .row {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+
+
+.calendar-links a:hover{
+
+background:#FFD700;
+
+color:#000;
+
+}
+
+
+
+.logout-link{
+
+display:block;
+
+margin-top:18px;
+
+color:#aaa;
+
+font-size:13px;
+
+text-decoration:underline;
+
+cursor:pointer;
+
+}

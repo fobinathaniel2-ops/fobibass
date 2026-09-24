@@ -1,0 +1,72 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>FOBIbass | My Booking</title>
+
+<link rel="stylesheet" href="client-portal.css">
+<link rel="stylesheet" href="auth-premium.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+</head>
+
+
+<body>
+
+
+<div class="portal-container">
+
+<h1><i class="fa-solid fa-wave-square" aria-hidden="true"></i> FOBIbass</h1>
+
+<h2>My Booking</h2>
+
+<div id="loadingText" class="loading-text">Loading your booking...</div>
+
+<p class="error-text" id="dashboardError"></p>
+
+<div class="booking-card hidden" id="bookingCard">
+
+<div class="row">
+<span class="label">Event</span>
+<span id="cardEvent"></span>
+</div>
+
+<div class="row">
+<span class="label">Date</span>
+<span id="cardDate"></span>
+</div>
+
+<div class="row">
+<span class="label">Location</span>
+<span id="cardLocation"></span>
+</div>
+
+<div class="row">
+<span class="label">Status</span>
+<span id="cardStatus"></span>
+</div>
+
+<div class="calendar-links calendar-links-top" id="calendarLinks">
+<a id="googleCalLink" href="#" target="_blank" rel="noopener">Add to Google Calendar</a>
+<a id="icsLink" href="#" target="_blank" rel="noopener">Download .ics</a>
+</div>
+
+</div>
+
+<span class="logout-link" id="logoutLink">Log out</span>
+
+</div>
+
+
+<script type="module" src="client-dashboard.js"></script>
+
+
+</body>
+
+</html>
+

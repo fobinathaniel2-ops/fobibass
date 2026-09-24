@@ -1,0 +1,147 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>FOBIbass | Client Portal Login</title>
+
+<link rel="stylesheet" href="client-portal.css">
+<link rel="stylesheet" href="auth-premium.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+</head>
+
+
+<body>
+
+
+<div class="portal-container">
+
+<h1><i class="fa-solid fa-wave-square" aria-hidden="true"></i> FOBIbass</h1>
+
+
+<!-- ================= LOGIN STEP ================= -->
+
+<div class="step active" id="stepLogin">
+
+<div class="auth-badge">Secure access</div>
+
+<h2>Client Portal Login</h2>
+
+<p class="auth-subtitle">Use your booking email and password to continue to your client dashboard.</p>
+
+<form id="loginForm">
+
+<input type="email" id="loginEmail" placeholder="Email" required>
+
+<input type="password" id="loginPassword" placeholder="Password" required>
+
+<button type="submit"><i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i> Log In</button>
+
+</form>
+
+<button class="link-btn" id="showForgotBtn">Forgot password?</button>
+
+<p class="error-text" id="loginError"></p>
+
+</div>
+
+
+<!-- ================= FORGOT: REQUEST OTP ================= -->
+
+<div class="step" id="stepRequestOtp">
+
+<div class="auth-badge">Secure reset</div>
+
+<h2>Reset your password</h2>
+
+<p class="auth-subtitle">Enter the email you booked with. We’ll send a 6-digit code.</p>
+
+<form id="requestOtpForm">
+
+<input type="email" id="otpEmail" placeholder="Email" required>
+
+<button type="submit">Send Code</button>
+
+</form>
+
+<button class="link-btn" id="backToLoginBtn1">Back to login</button>
+
+<p class="error-text" id="requestOtpError"></p>
+
+<p class="success-text" id="requestOtpSuccess"></p>
+
+</div>
+
+
+<!-- ================= FORGOT: VERIFY OTP ================= -->
+
+<div class="step" id="stepVerifyOtp">
+
+<div class="auth-badge">Verify code</div>
+
+<h2>Enter your code</h2>
+
+<div class="otp-shell" id="otpShell">
+  <div class="otp-visual" aria-hidden="true">
+    <span></span><span></span><span></span><span></span>
+  </div>
+  <div class="otp-code-card">
+    <span class="otp-card-label">Secure code</span>
+    <span class="otp-code-display" id="otpCodeDisplay">••••••</span>
+  </div>
+  <p class="otp-status" id="otpStatus">We’re checking your secure code.</p>
+</div>
+
+<form id="verifyOtpForm">
+
+<input type="text" id="otpCode" placeholder="6-digit code" maxlength="6" required>
+
+<button type="submit">Verify Code</button>
+
+</form>
+
+<p class="error-text" id="verifyOtpError"></p>
+
+</div>
+
+
+<!-- ================= FORGOT: NEW PASSWORD ================= -->
+
+<div class="step" id="stepNewPassword">
+
+<div class="auth-badge">New password</div>
+
+<h2>Set a new password</h2>
+
+<p class="auth-subtitle">Choose a strong password you’ll remember for the next visit.</p>
+
+<form id="newPasswordForm">
+
+<input type="password" id="newPassword" placeholder="New password (min 8 characters)" minlength="8" required>
+
+<button type="submit">Update Password</button>
+
+</form>
+
+<p class="error-text" id="newPasswordError"></p>
+
+<p class="success-text" id="newPasswordSuccess"></p>
+
+</div>
+
+
+</div>
+
+
+<script type="module" src="client-login.js"></script>
+
+
+</body>
+
+</html>
+

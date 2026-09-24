@@ -1,0 +1,681 @@
+/* ======================================
+   Fobee Bass Website
+   style.css
+====================================== */
+
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+
+:root{
+
+    --black:#050505;
+
+    --dark:#111;
+
+    --card:#181818;
+
+    --gold:#FFD700;
+
+    --gold-light:#ffe98a;
+
+    --white:#ffffff;
+
+    --gray:#b8b8b8;
+
+    --border:rgba(255,215,0,.2);
+
+}
+
+
+
+*{
+
+    margin:0;
+
+    padding:0;
+
+    box-sizing:border-box;
+
+}
+
+
+
+html{
+
+    scroll-behavior:smooth;
+
+}
+
+
+
+body{
+
+    font-family:"Poppins",sans-serif;
+
+    background:var(--black);
+
+    color:var(--white);
+
+    line-height:1.6;
+
+}
+
+
+
+
+
+/* ======================
+   NAVBAR
+====================== */
+
+
+header{
+
+    position:fixed;
+
+    width:100%;
+
+    top:0;
+
+    z-index:1000;
+
+    background:rgba(0,0,0,.8);
+
+    -webkit-backdrop-filter:blur(15px);
+    backdrop-filter:blur(15px);
+
+    border-bottom:1px solid var(--border);
+
+}
+
+
+
+nav{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:20px 8%;
+
+}
+
+
+
+nav h2{
+
+    color:var(--gold);
+
+}
+
+
+
+nav ul{
+
+    display:flex;
+
+    gap:25px;
+
+    list-style:none;
+
+}
+
+
+
+nav a{
+
+    color:white;
+
+    text-decoration:none;
+
+    transition:.3s;
+
+}
+
+
+
+nav a:hover{
+
+    color:var(--gold);
+
+}
+
+
+
+
+
+/* ======================
+   HERO
+====================== */
+
+
+.hero{
+
+    height:100vh;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    text-align:center;
+
+
+    background:
+
+    linear-gradient(
+    rgba(0,0,0,.7),
+    rgba(0,0,0,.9)
+    ),
+
+    url("images/stage.jpg");
+
+
+    background-size:cover;
+
+    background-position:center;
+
+}
+
+
+
+.hero-content{
+
+    max-width:800px;
+
+    padding:20px;
+
+}
+
+
+
+.hero h1{
+
+    font-size:4rem;
+
+    color:var(--gold);
+
+    animation:fadeUp 1s;
+
+}
+
+
+
+.hero p{
+
+    font-size:1.2rem;
+
+    color:var(--gray);
+
+    margin:20px 0 35px;
+
+}
+
+
+
+
+
+/* ======================
+ BUTTONS
+====================== */
+
+
+.btn,
+button{
+
+    display:inline-block;
+
+    background:var(--gold);
+
+    color:black;
+
+    padding:14px 35px;
+
+    border-radius:40px;
+
+    border:none;
+
+    cursor:pointer;
+
+    font-weight:700;
+
+    text-decoration:none;
+
+    margin:8px;
+
+    transition:.3s;
+
+}
+
+
+
+.btn:hover,
+button:hover{
+
+    transform:translateY(-5px);
+
+    box-shadow:0 15px 30px rgba(255,215,0,.3);
+
+}
+
+
+
+
+
+/* ======================
+ SECTIONS
+====================== */
+
+
+section{
+
+    padding:90px 8%;
+
+}
+
+
+
+section h2{
+
+    text-align:center;
+
+    color:var(--gold);
+
+    font-size:2.5rem;
+
+    margin-bottom:40px;
+
+}
+
+
+
+
+
+/* ======================
+ ABOUT
+====================== */
+
+
+#profileImage{
+
+    width:250px;
+
+    height:250px;
+
+    object-fit:cover;
+
+    border-radius:50%;
+
+    display:block;
+
+    margin:20px auto;
+
+    border:5px solid var(--gold);
+
+}
+
+
+
+#about p{
+
+    max-width:700px;
+
+    margin:auto;
+
+    text-align:center;
+
+    color:var(--gray);
+
+}
+
+
+
+
+
+/* ======================
+ CARDS
+====================== */
+
+
+#videoContainer,
+#serviceContainer,
+#testimonialContainer{
+
+    display:grid;
+
+    grid-template-columns:
+
+    repeat(auto-fit,minmax(250px,1fr));
+
+    gap:25px;
+
+}
+
+
+
+.video-card,
+.service-card,
+.testimonial-card{
+
+
+    background:var(--card);
+
+    padding:25px;
+
+    border-radius:20px;
+
+    border:1px solid var(--border);
+
+    transition:.3s;
+
+
+}
+
+
+
+.video-card:hover,
+.service-card:hover,
+.testimonial-card:hover{
+
+    transform:translateY(-10px);
+
+    border-color:var(--gold);
+
+}
+
+
+
+.video-card h3,
+.service-card h3{
+
+    color:var(--gold);
+
+}
+
+
+
+.testimonial-card blockquote{
+
+    color:var(--gray);
+
+}
+
+
+
+
+
+/* ======================
+ BOOKING FORM
+====================== */
+
+
+#booking form{
+
+    max-width:700px;
+
+    margin:auto;
+
+}
+
+
+
+input,
+select,
+textarea{
+
+
+    width:100%;
+
+    padding:15px;
+
+    margin-bottom:20px;
+
+    background:#0d0d0d;
+
+    border:1px solid #333;
+
+    border-radius:12px;
+
+    color:white;
+
+    outline:none;
+
+}
+
+
+
+input:focus,
+textarea:focus,
+select:focus{
+
+    border-color:var(--gold);
+
+}
+
+
+
+textarea{
+
+    height:150px;
+
+    resize:none;
+
+}
+
+
+
+
+
+/* ======================
+ CONTACT
+====================== */
+
+
+#contact{
+
+    text-align:center;
+
+}
+
+
+
+#contact p{
+
+    color:var(--gray);
+
+    margin:10px;
+
+}
+
+
+
+
+
+/* ======================
+ FOOTER
+====================== */
+
+
+footer{
+
+    background:#000;
+
+    padding:30px;
+
+    text-align:center;
+
+    border-top:1px solid var(--border);
+
+    color:var(--gray);
+
+}
+
+
+
+
+
+/* ======================
+ ANIMATION
+====================== */
+
+
+@keyframes fadeUp{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(30px);
+
+    }
+
+
+    to{
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
+}
+
+
+
+
+
+/* ======================
+ MOBILE
+====================== */
+
+/* Legacy mobile overrides removed. The premium responsive stylesheet now controls
+   mobile layout for this site and should be the single source of truth. */
+
+/* ======================
+CLIENT RATING
+====================== */
+
+.rating-section{
+
+    padding:80px 20px;
+
+    text-align:center;
+
+}
+
+.rating-card{
+
+    max-width:500px;
+
+    margin:auto;
+
+    padding:40px;
+
+    background:rgba(255,255,255,.08);
+
+    border:1px solid rgba(255,215,0,.3);
+
+    border-radius:20px;
+
+    -webkit-backdrop-filter:blur(15px);
+    backdrop-filter:blur(15px);
+
+}
+
+.rating-card h1{
+
+    color:#FFD700;
+
+    font-size:3rem;
+
+    margin-bottom:10px;
+
+}
+
+.rating-card h2{
+
+    color:white;
+
+    font-size:2rem;
+
+    margin-bottom:10px;
+
+}
+
+.rating-card p{
+
+    color:#ccc;
+
+    font-size:1.1rem;
+
+}
+
+.stars{
+
+    color:#FFD700;
+
+    font-size:1.3rem;
+
+    margin-bottom:10px;
+
+}
+
+
+.availability-section{
+
+padding:80px 20px;
+
+text-align:center;
+
+}
+
+
+#calendar{
+
+max-width:600px;
+
+margin:auto;
+
+display:grid;
+
+grid-template-columns:repeat(7,1fr);
+
+gap:10px;
+
+}
+
+
+.calendar-day{
+
+padding:15px;
+
+border-radius:10px;
+
+background:#222;
+
+color:white;
+
+cursor:pointer;
+
+}
+
+
+.booked{
+
+background:#8b0000;
+
+}
+
+
+.available{
+
+background:#1b5e20;
+
+}
+
+
+
