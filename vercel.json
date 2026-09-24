@@ -1,6 +1,8 @@
 {
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api" },
-    { "source": "/health", "destination": "/api" }
+    { "source": "/health", "destination": "/api" },
+    { "source": "/admin", "destination": "/admin-login.html" },
+    { "source": "/client", "destination": "/client-login.html" }
   ]
 }
