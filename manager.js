@@ -71,6 +71,9 @@ const formatTimestamp = (value) => {
 
 const BOOKING_STATUS_OPTIONS = ["Pending", "Approved", "Rejected", "Completed", "Attended"];
 
+// Escapes text coming from the public booking form before it is placed in the page.
+const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
+
 const normalizeBookingStatus = (value) => {
   const status = String(value || "Pending").trim();
   return BOOKING_STATUS_OPTIONS.includes(status) ? status : "Pending";
@@ -168,19 +171,22 @@ async function loadManager({ notify = false } = {}) {
       const normalizedStatus = normalizeBookingStatus(booking.status);
       return `
         <tr>
-          <td data-label="Name">${booking.name || ""}</td>
-          <td data-label="Email">${booking.email || ""}</td>
-          <td data-label="Phone">${booking.phone || ""}</td>
-          <td data-label="Event">${booking.event || ""}</td>
-          <td data-label="Date">${booking.date || ""}</td>
-          <td data-label="Location">${booking.location || ""}</td>
+          <td data-label="Name">${escapeHtml(booking.name)}</td>
+          <td data-label="Email">${escapeHtml(booking.email)}</td>
+          <td data-label="Phone">${escapeHtml(booking.phone)}</td>
+          <td data-label="Event">${escapeHtml(booking.event)}</td>
+          <td data-label="Date">${escapeHtml(booking.date)}</td>
+          <td data-label="Location">${escapeHtml(booking.location)}</td>
           <td data-label="Status">
             <div class="booking-status-cell">
               <span class="status-badge ${getBookingStatusClass(normalizedStatus)}">${normalizedStatus}</span>
-              <select class="booking-status-select" data-booking-id="${booking.id || ""}" aria-label="Change booking status for ${booking.name || "booking"}">
+              <select class="booking-status-select" data-booking-id="${escapeHtml(booking.id)}" aria-label="Change booking status for ${escapeHtml(booking.name || "booking")}">
                 ${BOOKING_STATUS_OPTIONS.map((option) => `<option value="${option}" ${option === normalizedStatus ? "selected" : ""}>${option}</option>`).join("")}
               </select>
             </div>
+          </td>
+          <td data-label="Action">
+            <button type="button" class="booking-delete-button" data-booking-id="${escapeHtml(booking.id)}" data-booking-name="${escapeHtml(booking.name)}" aria-label="Delete booking for ${escapeHtml(booking.name || "this client")}"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
           </td>
         </tr>
       `;
@@ -475,6 +481,48 @@ document.addEventListener("change", async (event) => {
     loadManager().catch(() => {});
   }
 });
+
+const deleteBooking = async (bookingId, name) => {
+  if (!window.confirm("Delete the booking from " + (name || "this client") + "? This cannot be undone.")) return;
+  try {
+    const response = await fetch("/api/admin/bookings/" + encodeURIComponent(bookingId) + "/delete", { method: "POST" });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "Could not delete booking.");
+    await loadManager();
+  } catch (error) {
+    showPageMessageModal({ title: "Delete failed", message: error.message || "Could not delete booking.", buttonText: "Try again" });
+  }
+};
+
+const clearAllBookings = async () => {
+  const typed = window.prompt("This permanently deletes ALL bookings and the client accounts created from them. Type DELETE to confirm.");
+  if (typed === null) return;
+  if (typed.trim() !== "DELETE") {
+    showPageMessageModal({ title: "Nothing removed", message: "You did not type DELETE, so no bookings were removed.", buttonText: "OK" });
+    return;
+  }
+  try {
+    const response = await fetch("/api/admin/bookings/clear", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ confirm: "DELETE" }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "Could not clear bookings.");
+    await loadManager();
+    showPageMessageModal({ title: "Bookings cleared", message: "Removed " + data.removedBookings + " booking(s).", buttonText: "Done" });
+  } catch (error) {
+    showPageMessageModal({ title: "Clear failed", message: error.message || "Could not clear bookings.", buttonText: "Try again" });
+  }
+};
+
+document.addEventListener("click", (event) => {
+  const button = event.target.closest(".booking-delete-button");
+  if (button) deleteBooking(button.dataset.bookingId, button.dataset.bookingName);
+});
+
+const clearBookingsBtn = document.getElementById("clearBookingsBtn");
+if (clearBookingsBtn) clearBookingsBtn.addEventListener("click", clearAllBookings);
 
 if (bookingFilter) {
   updateBookingFilterUI(bookingFilter.value || "All");

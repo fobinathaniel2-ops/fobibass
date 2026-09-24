@@ -11,6 +11,41 @@ router.get("/bookings", verifyAdminAuth, async (req, res) => {
   res.json({ bookings });
 });
 
+// Removes client accounts that were created from the removed bookings and have no bookings left.
+// Admin accounts (and any account that is not role "client") are never touched.
+const removeOrphanClients = (store, removedBookings) => {
+  const ids = new Set(removedBookings.map((item) => item.uid).filter(Boolean));
+  const emails = new Set(removedBookings.map((item) => item.email).filter(Boolean));
+  const stillBooked = (user) => store.bookings.some((item) => item.uid === user.id || item.email === user.email);
+  const gone = store.users.filter((user) => user.role === "client" && (ids.has(user.id) || emails.has(user.email)) && !stillBooked(user));
+  const goneIds = new Set(gone.map((user) => user.id));
+  const goneEmails = new Set(gone.map((user) => user.email));
+  store.users = store.users.filter((user) => !goneIds.has(user.id));
+  store.otps = (store.otps || []).filter((entry) => !goneEmails.has(entry.email));
+  return gone.length;
+};
+
+router.post("/bookings/clear", verifyAdminAuth, async (req, res) => {
+  if (req.body?.confirm !== "DELETE") return res.status(400).json({ error: "Confirmation required." });
+  const result = await update((store) => {
+    const removed = store.bookings;
+    store.bookings = [];
+    return { bookings: removed.length, clients: removeOrphanClients(store, removed) };
+  });
+  res.json({ ok: true, removedBookings: result.bookings, removedClients: result.clients });
+});
+
+router.post("/bookings/:id/delete", verifyAdminAuth, async (req, res) => {
+  const result = await update((store) => {
+    const index = store.bookings.findIndex((item) => item.id === req.params.id);
+    if (index === -1) return null;
+    const [removed] = store.bookings.splice(index, 1);
+    return { clients: removeOrphanClients(store, [removed]) };
+  });
+  if (!result) return res.status(404).json({ error: "Booking not found." });
+  res.json({ ok: true, removedClients: result.clients });
+});
+
 router.post("/bookings/:id/status", verifyAdminAuth, async (req, res) => {
   const status = String(req.body?.status || "").trim();
   const allowedStatuses = ["Pending", "Approved", "Rejected", "Completed", "Attended"];

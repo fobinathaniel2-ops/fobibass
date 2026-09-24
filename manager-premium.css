@@ -1107,3 +1107,28 @@ td {
     }
   }
 }
+
+/* Delete / clear bookings */
+.booking-tools { grid-template-columns: 1fr 220px auto; }
+.booking-clear-button, .booking-delete-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(239,68,68,0.45);
+  background: rgba(239,68,68,0.12);
+  color: #fca5a5;
+  font: 600 14px "DM Sans", sans-serif;
+  cursor: pointer;
+  box-shadow: none;
+  transform: none;
+}
+.booking-clear-button { min-height: 52px; padding: 0 16px; border-radius: 12px; }
+.booking-delete-button { min-width: 40px; min-height: 40px; padding: 0 12px; border-radius: 10px; }
+.booking-clear-button:hover, .booking-clear-button:focus-visible,
+.booking-delete-button:hover, .booking-delete-button:focus-visible {
+  background: rgba(239,68,68,0.24);
+  border-color: rgba(239,68,68,0.8);
+  outline: none;
+}
+@media (max-width: 980px) { .booking-tools { grid-template-columns: 1fr; } }
