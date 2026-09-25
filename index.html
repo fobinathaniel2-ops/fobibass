@@ -212,17 +212,17 @@
       <h2 id="testimonialModalTitle">Tell us about your session</h2>
       <p>Short, honest words help future clients know what it feels like to work with FOBIbass.</p>
       <form id="testimonialForm">
-        <input id="testimonialName" type="text" placeholder="Your name *" required>
+        <input id="testimonialName" name="testimonialName" type="text" placeholder="Your name *" required>
         <div class="star-rating" id="testimonialRating" role="radiogroup" aria-label="Your rating">
           <button type="button" class="rating-star is-selected" data-rating="1" role="radio" aria-label="1 star"><i class="fa-solid fa-star"></i></button>
           <button type="button" class="rating-star is-selected" data-rating="2" role="radio" aria-label="2 stars"><i class="fa-solid fa-star"></i></button>
           <button type="button" class="rating-star is-selected" data-rating="3" role="radio" aria-label="3 stars"><i class="fa-solid fa-star"></i></button>
           <button type="button" class="rating-star is-selected" data-rating="4" role="radio" aria-label="4 stars"><i class="fa-solid fa-star"></i></button>
           <button type="button" class="rating-star is-selected" data-rating="5" role="radio" aria-label="5 stars"><i class="fa-solid fa-star"></i></button>
-          <input type="hidden" id="testimonialRatingValue" value="5">
+          <input type="hidden" id="testimonialRatingValue" name="testimonialRatingValue" value="5">
           <span class="rating-caption" id="ratingCaption">5 / 5</span>
         </div>
-        <textarea id="testimonialMessage" placeholder="Your experience *" required></textarea>
+        <textarea id="testimonialMessage" name="testimonialMessage" placeholder="Your experience *" required></textarea>
         <button type="submit"><i class="fa-solid fa-paper-plane"></i> Send testimonial</button>
       </form>
       <p class="testimonial-form-status" id="testimonialFormStatus" role="status"></p>
