@@ -1,5 +1,6 @@
 const express = require("express");
 const { readStore, update, now } = require("../config/store");
+const { publicAvailability } = require("../utils/availability");
 
 const router = express.Router();
 
@@ -13,7 +14,7 @@ router.get("/", async (req, res) => {
       contact: store.settings?.contact || { phone: "", email: "", location: "" },
       socials: store.settings?.socials || { youtube: "", instagram: "", tiktok: "", x: "" },
     },
-    availability: store.availability || [],
+    availability: publicAvailability(store),
     videos: store.videos || [],
     services: store.services || [],
     testimonials: store.testimonials || [],

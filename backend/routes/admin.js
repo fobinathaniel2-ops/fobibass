@@ -2,6 +2,7 @@ const express = require("express");
 const { readStore, update } = require("../config/store");
 const verifyAdminAuth = require("../middleware/verifyAdminAuth");
 const { signToken, verifyToken } = require("../utils/tokens");
+const { isValidDate, adminOverview, dateConflict } = require("../utils/availability");
 
 const router = express.Router();
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "").split(",").map((email) => email.trim().toLowerCase()).filter(Boolean);
@@ -54,9 +55,14 @@ router.post("/bookings/:id/status", verifyAdminAuth, async (req, res) => {
     return res.status(400).json({ error: "Invalid booking status." });
   }
 
-  const booking = (await readStore()).bookings.find((item) => item.id === req.params.id);
+  const store = await readStore();
+  const booking = store.bookings.find((item) => item.id === req.params.id);
   if (!booking) {
     return res.status(404).json({ error: "Booking not found." });
+  }
+
+  if (status === "Approved" && dateConflict(store, booking.date, booking.id) === "booking") {
+    return res.status(409).json({ error: "Another booking is already approved for this date. Reject or change that one first." });
   }
 
   await update((store) => {
@@ -113,6 +119,7 @@ router.get("/content", verifyAdminAuth, async (req, res) => {
   res.json({
     settings: store.settings || {},
     availability: store.availability || [],
+    availabilityOverview: adminOverview(store),
     videos: store.videos || [],
     services: store.services || [],
     testimonials: store.testimonials || [],
@@ -169,14 +176,31 @@ router.post("/content/socials", verifyAdminAuth, async (req, res) => {
 
 router.post("/content/availability", verifyAdminAuth, async (req, res) => {
   const { date, status, event } = req.body || {};
-  if (!date) return res.status(400).json({ error: "Date is required." });
+  if (!isValidDate(date)) return res.status(400).json({ error: "Please choose a valid date." });
+
+  const nextStatus = status === "booked" ? "booked" : "available";
+  const note = String(event || "").trim().slice(0, 80);
 
   await update((store) => {
-    store.availability = store.availability || [];
-    const item = { id: Date.now().toString(), date, status: status || "available", event: event || "" };
-    store.availability.push(item);
+    // One manual entry per date: saving again replaces the old one.
+    store.availability = (store.availability || []).filter((item) => String(item.date).slice(0, 10) !== date);
+    // "Open" with no note simply clears a manual block.
+    if (nextStatus === "booked" || note) {
+      store.availability.push({ id: Date.now().toString(), date, status: nextStatus, event: note });
+    }
   });
 
+  return res.json({ ok: true });
+});
+
+router.post("/content/availability/:id/delete", verifyAdminAuth, async (req, res) => {
+  const removed = await update((store) => {
+    const before = (store.availability || []).length;
+    store.availability = (store.availability || []).filter((item) => String(item.id) !== req.params.id);
+    return before - store.availability.length;
+  });
+
+  if (!removed) return res.status(404).json({ error: "Entry not found." });
   return res.json({ ok: true });
 });
 

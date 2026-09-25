@@ -194,19 +194,124 @@ async function hydrateSiteContent() {
       `).join("");
     }
 
-    const calendar = byId("calendar");
-    if (calendar && Array.isArray(data.availability) && data.availability.length) {
-      calendar.innerHTML = data.availability.map((item) => `
-        <div class="availability-pill">
-          <span>${escapeHtml(item.date)}</span>
-          <strong>${escapeHtml(item.status || "available")}</strong>
-          <em>${escapeHtml(item.event || "General availability")}</em>
-        </div>
-      `).join("");
-    }
+    renderAvailability(data.availability);
   } catch (error) {
     console.warn("Site content unavailable", error.message);
   }
+}
+
+// ---------- Availability calendar ----------
+const availabilityByDate = new Map();
+const calendarCursor = new Date();
+calendarCursor.setDate(1);
+
+const pad2 = (value) => String(value).padStart(2, "0");
+const toISODate = (year, month, day) => `${year}-${pad2(month + 1)}-${pad2(day)}`;
+const todayISODate = () => { const now = new Date(); return toISODate(now.getFullYear(), now.getMonth(), now.getDate()); };
+const eventDateInput = byId("eventDate");
+
+function syncEventDateValidity() {
+  if (!eventDateInput) return;
+  const entry = availabilityByDate.get(eventDateInput.value);
+  eventDateInput.setCustomValidity(entry && entry.status === "booked" ? "That date is already booked. Please choose another date." : "");
+}
+
+function drawCalendar(message = "") {
+  const calendar = byId("calendar");
+  if (!calendar) return;
+
+  const year = calendarCursor.getFullYear();
+  const month = calendarCursor.getMonth();
+  const monthLabel = calendarCursor.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+  const leading = (new Date(year, month, 1).getDay() + 6) % 7; // weeks start on Monday
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = todayISODate();
+  const now = new Date();
+  const atStart = year === now.getFullYear() && month === now.getMonth();
+  const last = new Date(now.getFullYear(), now.getMonth() + 12, 1);
+  const atEnd = year === last.getFullYear() && month === last.getMonth();
+  const stateLabels = { available: "Available", pending: "Requested", booked: "Booked", past: "" };
+
+  let cells = "";
+  for (let i = 0; i < leading; i += 1) cells += '<span class="cal-cell is-empty" aria-hidden="true"></span>';
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const iso = toISODate(year, month, day);
+    const entry = availabilityByDate.get(iso);
+    let state = "available";
+    if (iso < today) state = "past";
+    else if (entry && entry.status === "booked") state = "booked";
+    else if (entry && entry.status === "pending") state = "pending";
+    const note = entry && entry.event ? `, ${entry.event}` : "";
+    cells += `<button type="button" class="cal-cell is-${state}${iso === today ? " is-today" : ""}${eventDateInput && eventDateInput.value === iso ? " is-selected" : ""}" data-date="${iso}" data-note="${escapeHtml(entry && entry.event ? entry.event : "")}"${state === "past" ? " disabled" : ""} aria-label="${escapeHtml(`${day} ${monthLabel}${stateLabels[state] ? ": " + stateLabels[state] + note : ""}`)}">${day}</button>`;
+  }
+
+  calendar.innerHTML = `
+    <div class="cal">
+      <div class="cal-head">
+        <button type="button" class="cal-nav" data-cal-nav="-1" aria-label="Previous month"${atStart ? " disabled" : ""}><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+        <strong>${escapeHtml(monthLabel)}</strong>
+        <button type="button" class="cal-nav" data-cal-nav="1" aria-label="Next month"${atEnd ? " disabled" : ""}><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+      </div>
+      <div class="cal-weekdays" aria-hidden="true"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+      <div class="cal-grid">${cells}</div>
+      <div class="cal-legend">
+        <span><i class="is-available"></i>Available</span>
+        <span><i class="is-pending"></i>Requested</span>
+        <span><i class="is-booked"></i>Booked</span>
+      </div>
+      <p class="cal-message" role="status">${escapeHtml(message || "Tap an open date to start your booking request.")}</p>
+    </div>
+  `;
+}
+
+function renderAvailability(items) {
+  const calendar = byId("calendar");
+  if (!calendar) return;
+  availabilityByDate.clear();
+  (Array.isArray(items) ? items : []).forEach((item) => {
+    if (item && item.date) availabilityByDate.set(String(item.date).slice(0, 10), item);
+  });
+  calendar.classList.add("availability-calendar");
+  drawCalendar();
+  syncEventDateValidity();
+}
+
+const calendarRoot = byId("calendar");
+if (calendarRoot) {
+  calendarRoot.addEventListener("click", (event) => {
+    const nav = event.target.closest("[data-cal-nav]");
+    if (nav) {
+      calendarCursor.setMonth(calendarCursor.getMonth() + Number(nav.dataset.calNav));
+      drawCalendar();
+      return;
+    }
+
+    const cell = event.target.closest(".cal-cell[data-date]");
+    if (!cell || cell.disabled) return;
+    const iso = cell.dataset.date;
+    const pretty = new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
+
+    if (cell.classList.contains("is-booked")) {
+      const note = cell.dataset.note ? ` (${cell.dataset.note})` : "";
+      drawCalendar(`${pretty} is already booked${note}. Please pick another date.`);
+      return;
+    }
+
+    if (eventDateInput) {
+      eventDateInput.value = iso;
+      syncEventDateValidity();
+    }
+    drawCalendar(`${pretty} selected. Complete the form below to send your request.`);
+    const target = byId("booking");
+    if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (eventDateInput) window.setTimeout(() => eventDateInput.focus({ preventScroll: true }), 450);
+  });
+}
+
+if (eventDateInput) {
+  eventDateInput.min = todayISODate();
+  eventDateInput.addEventListener("input", syncEventDateValidity);
+  eventDateInput.addEventListener("change", syncEventDateValidity);
 }
 
 if (byId("youtubeSubscribers")) { refreshYoutubeStats(); window.setInterval(refreshYoutubeStats, 15 * 60 * 1000); }

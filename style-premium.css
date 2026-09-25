@@ -335,3 +335,39 @@ footer .social-links { display: inline-flex; margin-left: 22px; }
   .testimonial-modal-panel { padding: 26px 18px 20px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
+/* ===== Availability calendar ===== */
+#calendar.availability-calendar { display: block; min-height: 0; }
+.cal { width: min(100%, 620px); padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(160deg, rgba(255,255,255,.045), rgba(255,255,255,.012)); }
+.cal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.cal-head strong { color: var(--white); font: 600 17px 'Space Grotesk', sans-serif; }
+.cal-nav, .cal-cell { box-sizing: border-box; }
+.cal-nav:hover, .cal-cell:hover { transform: none; box-shadow: none; }
+.cal-nav { display: grid; place-items: center; width: 38px; height: 38px; min-height: 38px; padding: 0; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.04); color: var(--white); cursor: pointer; }
+.cal-nav:hover:not(:disabled) { border-color: var(--yellow); color: var(--yellow); }
+.cal-nav:disabled { opacity: .3; cursor: default; }
+.cal-weekdays, .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.cal-weekdays { margin-bottom: 8px; }
+.cal-weekdays span { color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-align: center; text-transform: uppercase; }
+.cal-cell { position: relative; display: grid; place-items: center; width: 100%; min-height: 46px; aspect-ratio: 1 / 1; margin: 0; padding: 0; border: 1px solid transparent; border-radius: 10px; background: transparent; color: var(--white); font: 600 14px 'Space Grotesk', sans-serif; }
+button.cal-cell { cursor: pointer; }
+.cal-cell.is-empty { pointer-events: none; }
+.cal-cell.is-available { border-color: rgba(255,208,0,.28); background: rgba(255,208,0,.05); }
+.cal-cell.is-available:hover, .cal-cell.is-pending:hover { background: var(--yellow); border-color: var(--yellow); color: var(--ink); }
+.cal-cell.is-pending { border: 1px dashed rgba(255,170,0,.7); background: rgba(255,170,0,.08); }
+.cal-cell.is-booked { border-color: rgba(255,90,90,.35); background: rgba(255,90,90,.12); color: #ff9b9b; text-decoration: line-through; cursor: not-allowed; }
+.cal-cell.is-past { opacity: .25; cursor: default; }
+.cal-cell.is-today { box-shadow: 0 0 0 2px rgba(255,208,0,.55); }
+.cal-cell.is-selected { background: var(--yellow); border-color: var(--yellow); color: var(--ink); }
+.cal-legend { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+.cal-legend span { display: inline-flex; align-items: center; gap: 7px; }
+.cal-legend i { width: 10px; height: 10px; border-radius: 3px; }
+.cal-legend .is-available { background: rgba(255,208,0,.55); }
+.cal-legend .is-pending { background: rgba(255,170,0,.85); }
+.cal-legend .is-booked { background: rgba(255,90,90,.75); }
+.cal-message { min-height: 18px; margin: 12px 0 0; color: #c6d0d5; font-size: 12px; line-height: 1.5; }
+@media (max-width: 520px) {
+  .cal { padding: 14px; }
+  .cal-grid, .cal-weekdays { gap: 4px; }
+  .cal-cell { min-height: 40px; font-size: 13px; }
+}

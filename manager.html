@@ -220,132 +220,73 @@ Approved
 <!-- ================= BOOKINGS ================= -->
 <section class="booking-section">
 
-
-<h2><i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Bookings</h2>
-
-
-<div class="booking-tools">
-
-  <div class="booking-search-wrap">
-    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-    <input
-      type="text"
-      id="bookingSearch"
-      aria-label="Search bookings"
-      placeholder="Search by name, email, event...">
+  <div class="booking-head">
+    <h2><i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Bookings</h2>
+    <button type="button" id="clearBookingsBtn" class="booking-clear-button">
+      <i class="fa-solid fa-trash" aria-hidden="true"></i> Clear all
+    </button>
   </div>
 
-  <div class="booking-filter-wrap">
-    <button type="button" id="bookingFilterButton" class="booking-filter-button" aria-expanded="false" aria-haspopup="listbox">
-      <span class="booking-filter-icon"><i class="fa-solid fa-filter" aria-hidden="true"></i></span>
-      <span class="booking-filter-selected" id="bookingFilterCurrent">All Bookings</span>
-      <i class="fa-solid fa-chevron-down booking-filter-caret" aria-hidden="true"></i>
-    </button>
-
-    <input type="hidden" id="bookingFilter" value="All">
-
-    <div id="bookingFilterMenu" class="booking-filter-menu" role="menu" aria-label="Booking filter options">
-      <button type="button" role="menuitem" class="booking-filter-option is-active" data-value="All">All Bookings</button>
-      <button type="button" role="menuitem" class="booking-filter-option" data-value="Pending">Pending</button>
-      <button type="button" role="menuitem" class="booking-filter-option" data-value="Approved">Approved</button>
-      <button type="button" role="menuitem" class="booking-filter-option" data-value="Rejected">Rejected</button>
-      <button type="button" role="menuitem" class="booking-filter-option" data-value="Completed">Completed</button>
+  <div class="booking-tools">
+    <div class="booking-search-wrap">
+      <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+      <input
+        type="text"
+        id="bookingSearch"
+        aria-label="Search bookings"
+        placeholder="Search by name, email, event...">
     </div>
   </div>
 
-  <button type="button" id="clearBookingsBtn" class="booking-clear-button">
-    <i class="fa-solid fa-trash" aria-hidden="true"></i> Clear all
-  </button>
+  <input type="hidden" id="bookingFilter" value="All">
+  <div class="booking-chips" role="group" aria-label="Filter bookings by status">
+    <button type="button" class="booking-filter-option is-active" data-value="All">All <span class="chip-count" data-count="All">0</span></button>
+    <button type="button" class="booking-filter-option" data-value="Pending">Pending <span class="chip-count" data-count="Pending">0</span></button>
+    <button type="button" class="booking-filter-option" data-value="Approved">Approved <span class="chip-count" data-count="Approved">0</span></button>
+    <button type="button" class="booking-filter-option" data-value="Rejected">Rejected <span class="chip-count" data-count="Rejected">0</span></button>
+    <button type="button" class="booking-filter-option" data-value="Completed">Completed <span class="chip-count" data-count="Completed">0</span></button>
+  </div>
 
-</div>
-
-<div class="booking-table-wrap">
-  <table>
-
-    <thead>
-
-      <tr>
-
-        <th>Name</th>
-
-        <th>Email</th>
-
-        <th>Phone</th>
-
-        <th>Event</th>
-
-        <th>Date</th>
-
-        <th>Location</th>
-
-        <th>Status</th>
-
-        <th>Action</th>
-
-      </tr>
-
-    </thead>
-
-    <tbody id="bookingTable">
-
-    </tbody>
-
-  </table>
-</div>
-
+  <div id="bookingTable" class="booking-cards" aria-live="polite"></div>
 
 </section>
   
-  <section>
+  <section class="availability-panel">
 
-<h2><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> Manage Availability</h2>
+  <h2><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> Manage Availability</h2>
 
+  <p class="availability-help">
+    Your public calendar updates by itself: <strong>approved bookings</strong> block their date,
+    and <strong>pending requests</strong> show as "Requested". Use this form to block a date yourself
+    (for example a private event) or to clear a block you added.
+  </p>
 
-<form id="availabilityForm">
+  <form id="availabilityForm" class="availability-form">
+    <label class="field">
+      <span>Date</span>
+      <input id="availableDate" name="availableDate" type="date" required>
+    </label>
 
+    <label class="field">
+      <span>Action</span>
+      <select id="availabilityStatus" name="availabilityStatus">
+        <option value="booked">Block this date</option>
+        <option value="available">Mark as open</option>
+      </select>
+    </label>
 
-<input 
-id="availableDate"
-aria-label="Availability date"
-type="date"
->
+    <label class="field field-wide">
+      <span>Note (shown on the public calendar)</span>
+      <input id="availabilityEvent" name="availabilityEvent" maxlength="80" placeholder="e.g. Private event">
+    </label>
 
+    <button type="submit" class="availability-save">
+      <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save date
+    </button>
+  </form>
 
-<select id="availabilityStatus" aria-label="Availability status">
-
-<option value="available">
-Available
-</option>
-
-
-<option value="booked">
-Booked
-</option>
-
-
-</select>
-
-
-<input
-id="availabilityEvent"
-aria-label="Availability event"
-placeholder="Event name"
->
-
-
-<button type="button">
-<i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
-Save Date
-</button>
-
-
-</form>
-
-
-<div id="availabilityList">
-
-</div>
-
+  <h3 class="availability-subtitle">Upcoming dates</h3>
+  <div id="availabilityList"></div>
 
 </section>
 <!-- ================= HERO EDIT ================= -->

@@ -1,252 +1,171 @@
-﻿// ======================================
+// ======================================
 // emailTemplates.js
-// HTML email bodies, styled to match the FOBIbass brand and designed for a
-// clean, premium, real-company presentation.
+// HTML email bodies for FOBIbass. Built with tables and inline styles so they
+// render the same in Gmail, Outlook and phone mail apps.
+// The logo is loaded from the live website: Gmail blocks inline base64 images,
+// which is why the previous version showed a broken logo.
 // ======================================
 
-const fs = require("fs");
-const path = require("path");
-
-const logoPath = path.join(__dirname, "..", "..", "main-logo.png");
-const logoDataUri = fs.existsSync(logoPath)
-  ? `data:image/png;base64,${fs.readFileSync(logoPath).toString("base64")}`
-  : "https://fobibass.com/main-logo.png";
+const SITE_URL = String(process.env.FRONTEND_URL || "https://fobibass.vercel.app").replace(/\/+$/, "");
+const LOGO_URL = `${SITE_URL}/main-logo.png`;
 
 const GOLD = "#D4AF37";
-const GOLD_SOFT = "#F3D989";
 const BLACK = "#0B0B0B";
+const PAGE = "#0B0D10";
 const CARD = "#14181D";
-const PANEL = "#0E1216";
+const LINE = "#262C34";
 const WHITE = "#FFFFFF";
-const TEXT = "#EDF2F7";
-const MUTED = "#B7C0CC";
-const SOFT = "#8A93A0";
+const TEXT = "#E8EDF2";
+const MUTED = "#9AA5B1";
+const FONT = "'Segoe UI',Helvetica,Arial,sans-serif";
 
-function brandHighlights() {
-  return `
-    <div style="display:flex;flex-wrap:wrap;gap:12px;margin:0 0 22px;padding:0;">
-      <div style="flex:1 1 0;min-width:120px;padding:14px 12px;border-radius:12px;border:1px solid rgba(212,175,55,.25);background:linear-gradient(180deg, rgba(212,175,55,.08), rgba(255,255,255,.02));">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${GOLD};box-shadow:0 0 0 4px rgba(212,175,55,.14);"></span>
-          <span style="color:${GOLD};font-size:10px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;">Live</span>
-        </div>
-        <div style="color:${TEXT};font-size:13px;font-weight:700;line-height:1.4;">Performance-ready booking</div>
-      </div>
-      <div style="flex:1 1 0;min-width:120px;padding:14px 12px;border-radius:12px;border:1px solid rgba(212,175,55,.25);background:linear-gradient(180deg, rgba(212,175,55,.08), rgba(255,255,255,.02));">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${GOLD};box-shadow:0 0 0 4px rgba(212,175,55,.14);"></span>
-          <span style="color:${GOLD};font-size:10px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;">Studio</span>
-        </div>
-        <div style="color:${TEXT};font-size:13px;font-weight:700;line-height:1.4;">Professional sessions</div>
-      </div>
-      <div style="flex:1 1 0;min-width:120px;padding:14px 12px;border-radius:12px;border:1px solid rgba(212,175,55,.25);background:linear-gradient(180deg, rgba(212,175,55,.08), rgba(255,255,255,.02));">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${GOLD};box-shadow:0 0 0 4px rgba(212,175,55,.14);"></span>
-          <span style="color:${GOLD};font-size:10px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;">Worship</span>
-        </div>
-        <div style="color:${TEXT};font-size:13px;font-weight:700;line-height:1.4;">Faith-filled sound</div>
-      </div>
-    </div>
-  `;
-}
+const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
 
 function wrapper(innerHtml) {
   return `
-  <div style="background:linear-gradient(135deg, #070909 0%, #11161a 45%, #1a1f26 100%);padding:32px 16px;font-family:Segoe UI,Helvetica,Arial,sans-serif;">
-    <div style="max-width:640px;margin:0 auto;background:linear-gradient(180deg, ${CARD} 0%, ${PANEL} 100%);border:1px solid rgba(212,175,55,.35);border-radius:18px;overflow:hidden;box-shadow:0 20px 48px rgba(0,0,0,.35);">
-      <div style="padding:22px 24px;border-bottom:1px solid rgba(212,175,55,.24);background:linear-gradient(90deg, rgba(212,175,55,.12), rgba(255,255,255,.02));">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-          <div style="display:flex;align-items:center;gap:14px;">
-            <div style="display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg, rgba(243,217,137,.38), rgba(212,175,55,.15));border:1px solid rgba(212,175,55,.45);box-shadow:inset 0 0 0 1px rgba(255,255,255,.05), 0 10px 20px rgba(212,175,55,.12);">
-              <span style="display:inline-block;width:18px;height:18px;background:linear-gradient(135deg, ${GOLD_SOFT}, ${GOLD});border-radius:5px;transform:rotate(45deg);box-shadow:0 0 0 1px rgba(255,255,255,.08);"></span>
-            </div>
-            <div>
-              <img src="${logoDataUri}" alt="FOBIbass logo" style="display:block;height:36px;width:auto;max-width:190px;border:0;outline:none;text-decoration:none;" />
-              <div style="color:${MUTED};font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-top:6px;">Live • Studio • Worship</div>
-            </div>
-          </div>
-          <span style="display:inline-block;padding:7px 11px;border-radius:999px;background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(212,175,55,.04));border:1px solid rgba(212,175,55,.25);color:${MUTED};font-size:11px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;">Professional booking</span>
-        </div>
-      </div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${PAGE};">
+  <tr>
+    <td align="center" style="padding:28px 12px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background:${CARD};border:1px solid ${LINE};border-radius:14px;overflow:hidden;">
+        <tr>
+          <td align="center" style="background:#000000;padding:26px 24px 22px;border-bottom:3px solid ${GOLD};">
+            <img src="${LOGO_URL}" alt="FOBIbass" width="120" style="display:block;width:120px;max-width:100%;height:auto;border:0;outline:none;text-decoration:none;">
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:32px 30px 28px;font-family:${FONT};color:${TEXT};">
+            ${innerHtml}
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:18px 30px;border-top:1px solid ${LINE};font-family:${FONT};font-size:12px;line-height:1.6;color:${MUTED};text-align:center;">
+            FOBIbass &middot; Accra, Oyarifa, Ankonam<br>
+            Questions? Just reply to this email.
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>`;
+}
 
-      <div style="padding:18px 24px 0;background:rgba(255,255,255,.01);border-bottom:1px solid rgba(212,175,55,.12);">
-        ${brandHighlights()}
-      </div>
+function eyebrow(text) {
+  return `<div style="margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:${GOLD};">${esc(text)}</div>`;
+}
 
-      <div style="height:1px;background:linear-gradient(90deg, rgba(212,175,55,0), rgba(212,175,55,.75), rgba(212,175,55,0));margin:0 24px;"></div>
+function heading(text) {
+  return `<h1 style="margin:0 0 14px;font-size:26px;line-height:1.25;font-weight:700;color:${WHITE};">${esc(text)}</h1>`;
+}
 
-      <div style="padding:30px 28px;background-image:repeating-linear-gradient(to bottom, rgba(255,255,255,.012), rgba(255,255,255,.012) 1px, transparent 1px, transparent 8px);">
-        ${innerHtml}
-      </div>
-
-      <div style="padding:18px 24px;border-top:1px solid rgba(212,175,55,.20);background:rgba(5,7,9,.88);color:${MUTED};font-size:12px;line-height:1.6;">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-          <div>FOBIbass · Accra, Oyarifa, Ankonam</div>
-          <div style="color:${GOLD};font-weight:700;">Need help? Reply to this email.</div>
-        </div>
-      </div>
-    </div>
-  </div>`;
+function paragraph(html, extra = "") {
+  return `<p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:${TEXT};${extra}">${html}</p>`;
 }
 
 function button(url, label) {
-  return `<a href="${url}" style="display:inline-block;margin-top:18px;padding:13px 24px;background:linear-gradient(135deg, ${GOLD_SOFT}, ${GOLD});color:${BLACK};font-weight:800;text-decoration:none;border-radius:999px;box-shadow:0 12px 22px rgba(212,175,55,.2), inset 0 0 0 1px rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.12);letter-spacing:.2px;">${label} →</a>`;
-}
-
-function labelBadge(text) {
-  return `<span style="display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.35);color:${GOLD};font-size:10px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;box-shadow:inset 0 0 0 1px rgba(255,255,255,.02);">${text}</span>`;
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:22px 0 4px;"><tr><td style="border-radius:8px;background:${GOLD};"><a href="${esc(url)}" style="display:inline-block;padding:13px 26px;font-family:${FONT};font-size:14px;font-weight:700;color:${BLACK};text-decoration:none;border-radius:8px;">${esc(label)}</a></td></tr></table>`;
 }
 
 function infoRow(label, value) {
-  return `
-    <tr>
-      <td style="padding:8px 0;color:${MUTED};font-size:13px;font-weight:600;border-bottom:1px solid rgba(255,255,255,.06);">${label}</td>
-      <td style="padding:8px 0;color:${TEXT};font-size:14px;border-bottom:1px solid rgba(255,255,255,.06);">${value}</td>
-    </tr>
-  `;
+  return `<tr>
+    <td style="padding:10px 0;width:38%;border-bottom:1px solid ${LINE};font-size:13px;font-weight:600;color:${MUTED};vertical-align:top;">${esc(label)}</td>
+    <td style="padding:10px 0;border-bottom:1px solid ${LINE};font-size:14px;color:${WHITE};vertical-align:top;">${esc(value)}</td>
+  </tr>`;
+}
+
+function infoTable(rows) {
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0 6px;font-family:${FONT};">${rows.join("")}</table>`;
 }
 
 function otpEmailTemplate({ name, otp, expiryMinutes }) {
   return wrapper(`
-    <div style="margin-bottom:18px;">${labelBadge("Secure access")}</div>
-    <h2 style="color:${GOLD};margin:0 0 12px;font-size:28px;line-height:1.2;">Password reset</h2>
-    <p style="color:${TEXT};margin:0 0 20px;line-height:1.7;font-size:15px;">
-      Hi ${name || "there"}, a password reset was requested for your FOBIbass client portal.
-      Use the code below to continue securely.
-    </p>
-    <div style="font-size:34px;letter-spacing:10px;font-weight:800;color:${WHITE};background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(212,175,55,.05));border:1px solid rgba(212,175,55,.4);border-radius:12px;padding:18px;text-align:center;box-shadow:inset 0 0 0 1px rgba(255,255,255,.03);">${otp}</div>
-    <p style="color:${MUTED};font-size:13px;margin-top:18px;line-height:1.6;">This code expires in ${expiryMinutes} minutes. If you did not request this reset, you can safely ignore this message.</p>
+    ${eyebrow("Secure access")}
+    ${heading("Password reset")}
+    ${paragraph(`Hi ${esc(name || "there")}, a password reset was requested for your FOBIbass client portal. Use the code below to continue.`)}
+    <div style="margin:8px 0 18px;padding:18px;border:1px solid ${GOLD};border-radius:10px;background:${PAGE};font-size:32px;font-weight:700;letter-spacing:10px;text-align:center;color:${WHITE};">${esc(otp)}</div>
+    ${paragraph(`This code expires in ${esc(expiryMinutes)} minutes. If you did not request this reset, you can safely ignore this message.`, `font-size:13px;color:${MUTED};`)}
   `);
 }
 
-function bookingConfirmationTemplate({
-  name,
-  email,
-  eventType,
-  eventDate,
-  location,
-  loginUrl,
-  tempPassword,
-  googleCalendarLink,
-  icsDownloadUrl,
-}) {
+function bookingConfirmationTemplate({ name, email, eventType, eventDate, location, loginUrl, tempPassword, googleCalendarLink, icsDownloadUrl }) {
+  const existingAccount = !tempPassword || tempPassword === "Your existing password";
   return wrapper(`
-    <div style="margin-bottom:18px;">${labelBadge("Booking received")}</div>
-    <h2 style="color:${GOLD};margin:0 0 10px;font-size:30px;line-height:1.2;">Welcome aboard, ${name}</h2>
-    <p style="color:${TEXT};margin:0;line-height:1.7;font-size:15px;">
-      Thanks for choosing FOBIbass. Your booking request has been received and is now in our queue for review.
-    </p>
+    ${eyebrow("Booking received")}
+    ${heading(`Thank you, ${name}`)}
+    ${paragraph("Your booking request has been received and is now being reviewed. We will confirm with you shortly.")}
 
-    <div style="margin-top:22px;padding:18px 18px 6px;border:1px solid rgba(255,255,255,.06);border-radius:12px;background:rgba(255,255,255,.01);">
-      <table style="width:100%;color:${WHITE};font-size:14px;border-collapse:separate;border-spacing:0;">
-        ${infoRow("Event type", eventType)}
-        ${infoRow("Date", eventDate)}
-        ${infoRow("Location", location)}
-      </table>
-    </div>
+    ${infoTable([infoRow("Event type", eventType), infoRow("Date", eventDate), infoRow("Location", location)])}
 
-    <div style="margin-top:24px;padding:18px;border:1px solid rgba(212,175,55,.25);border-radius:12px;background:linear-gradient(180deg, rgba(212,175,55,.06), rgba(255,255,255,.01));">
-      <div style="color:${GOLD};font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;">Portal access</div>
-      <p style="color:${TEXT};margin:0;line-height:1.6;font-size:14px;">Your client portal account is ready. Please use the email below to log in.</p>
-      <table style="width:100%;color:${WHITE};font-size:14px;margin-top:12px;border-collapse:separate;border-spacing:0;">
-        ${infoRow("Email", email)}
-      </table>
-      <p style="color:${TEXT};font-size:14px;margin:12px 0 0;line-height:1.6;">Temporary password: <strong style="color:${GOLD};">${tempPassword}</strong></p>
-      <p style="color:${MUTED};font-size:12px;line-height:1.6;margin-top:8px;">You will be prompted to update this password after your first login. Please keep it private.</p>
+    <div style="margin:24px 0 0;padding:18px 20px;border:1px solid ${LINE};border-radius:10px;background:${PAGE};">
+      <div style="margin:0 0 8px;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${GOLD};">Your client portal</div>
+      ${paragraph(`Sign in with <strong style="color:${WHITE};">${esc(email)}</strong>.`, "margin-bottom:8px;font-size:14px;")}
+      ${existingAccount
+        ? paragraph("Use the password you already have for this account.", `margin-bottom:0;font-size:14px;color:${MUTED};`)
+        : `${paragraph(`Temporary password: <strong style="color:${GOLD};font-size:16px;">${esc(tempPassword)}</strong>`, "margin-bottom:6px;font-size:14px;")}
+           ${paragraph("You will be asked to change it after your first login. Please keep it private.", `margin-bottom:0;font-size:12px;color:${MUTED};`)}`}
       ${button(loginUrl, "Open client portal")}
     </div>
 
-    <div style="margin-top:24px;">
-      <div style="color:${GOLD};font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;">Calendar</div>
-      <p style="color:${MUTED};margin:0;line-height:1.7;font-size:14px;">
-        <a href="${googleCalendarLink}" style="color:${GOLD};">Add to Google Calendar</a>
-        &nbsp;·&nbsp;
-        <a href="${icsDownloadUrl}" style="color:${GOLD};">Download .ics</a>
-      </p>
-    </div>
+    <p style="margin:22px 0 0;font-size:13px;line-height:1.7;color:${MUTED};">
+      Add to calendar:
+      <a href="${esc(googleCalendarLink)}" style="color:${GOLD};text-decoration:underline;">Google Calendar</a>
+      &nbsp;&middot;&nbsp;
+      <a href="${esc(icsDownloadUrl)}" style="color:${GOLD};text-decoration:underline;">Download .ics</a>
+    </p>
   `);
 }
 
-function adminNewBookingTemplate({
-  name,
-  email,
-  phone,
-  eventType,
-  eventDate,
-  location,
-  budget,
-  message,
-  managerUrl,
-}) {
+function adminNewBookingTemplate({ name, email, phone, eventType, eventDate, location, budget, message, managerUrl }) {
   return wrapper(`
-    <div style="margin-bottom:18px;">${labelBadge("New request")}</div>
-    <h2 style="color:${GOLD};margin:0 0 14px;font-size:30px;line-height:1.2;">New booking request</h2>
-    <p style="color:${TEXT};margin:0;line-height:1.7;font-size:15px;">A new enquiry has been submitted through the FOBIbass booking form.</p>
+    ${eyebrow("New request")}
+    ${heading("New booking request")}
+    ${paragraph("A new enquiry was submitted through the FOBIbass booking form.")}
 
-    <div style="margin-top:22px;padding:18px 18px 6px;border:1px solid rgba(255,255,255,.06);border-radius:12px;background:rgba(255,255,255,.01);">
-      <table style="width:100%;color:${WHITE};font-size:14px;border-collapse:separate;border-spacing:0;">
-        ${infoRow("Client name", name)}
-        ${infoRow("Email", email)}
-        ${infoRow("Phone", phone || "—")}
-        ${infoRow("Event type", eventType)}
-        ${infoRow("Date", eventDate)}
-        ${infoRow("Location", location)}
-        ${infoRow("Budget", budget || "—")}
-      </table>
-    </div>
+    ${infoTable([
+      infoRow("Client name", name),
+      infoRow("Email", email),
+      infoRow("Phone", phone || "—"),
+      infoRow("Event type", eventType),
+      infoRow("Date", eventDate),
+      infoRow("Location", location),
+      infoRow("Budget", budget || "—"),
+    ])}
 
-    ${message ? `
-      <div style="margin-top:22px;padding:16px 18px;border-left:3px solid ${GOLD};border-radius:10px;background:rgba(212,175,55,.05);">
-        <div style="color:${GOLD};font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;">Message</div>
-        <p style="color:${TEXT};margin:0;line-height:1.7;font-size:14px;">${message}</p>
-      </div>
-    ` : ""}
+    ${message ? `<div style="margin:20px 0 0;padding:14px 16px;border-left:3px solid ${GOLD};background:${PAGE};">
+      <div style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${GOLD};">Message</div>
+      <div style="font-size:14px;line-height:1.7;color:${TEXT};">${esc(message)}</div>
+    </div>` : ""}
 
     ${button(managerUrl, "Open manager dashboard")}
   `);
 }
 
-function adminAttendanceConfirmTemplate({
-  clientName,
-  eventType,
-  eventDate,
-  confirmUrl,
-}) {
+function adminAttendanceConfirmTemplate({ clientName, eventType, eventDate, confirmUrl }) {
   return wrapper(`
-    <div style="margin-bottom:18px;">${labelBadge("Attendance review")}</div>
-    <h2 style="color:${GOLD};margin:0 0 12px;font-size:30px;line-height:1.2;">Attendance confirmation</h2>
-    <p style="color:${TEXT};margin:0;line-height:1.7;font-size:15px;">
-      The event below has now passed. Please confirm whether <strong style="color:${WHITE};">${clientName}</strong> attended.
-    </p>
-    <div style="margin-top:22px;padding:18px 18px 6px;border:1px solid rgba(255,255,255,.06);border-radius:12px;background:rgba(255,255,255,.01);">
-      <table style="width:100%;color:${WHITE};font-size:14px;border-collapse:separate;border-spacing:0;">
-        ${infoRow("Event", eventType)}
-        ${infoRow("Date", eventDate)}
-      </table>
-    </div>
-    <p style="color:${MUTED};font-size:13px;margin-top:18px;line-height:1.6;">If confirmed, the client portal access will be closed automatically.</p>
+    ${eyebrow("Attendance review")}
+    ${heading("Attendance confirmation")}
+    ${paragraph(`The event below has now passed. Please confirm whether <strong style="color:${WHITE};">${esc(clientName)}</strong> attended.`)}
+    ${infoTable([infoRow("Event", eventType), infoRow("Date", eventDate)])}
+    ${paragraph("If confirmed, the client's portal access will be closed automatically.", `margin-top:14px;font-size:13px;color:${MUTED};`)}
     ${button(confirmUrl, "Yes, confirmed")}
   `);
 }
 
 function accessClosedTemplate({ name, eventType }) {
   return wrapper(`
-    <div style="margin-bottom:18px;">${labelBadge("Event completed")}</div>
-    <h2 style="color:${GOLD};margin:0 0 12px;font-size:30px;line-height:1.2;">Thank you, ${name}</h2>
-    <p style="color:${TEXT};margin:0;line-height:1.7;font-size:15px;">
-      Your event, <strong style="color:${WHITE};">${eventType}</strong>, has been marked as completed. Your client portal access has now been closed.
-    </p>
-    <p style="color:${MUTED};margin-top:18px;line-height:1.7;font-size:14px;">It was a pleasure working with you. We hope to play for you again soon.</p>
+    ${eyebrow("Event completed")}
+    ${heading(`Thank you, ${name}`)}
+    ${paragraph(`Your event, <strong style="color:${WHITE};">${esc(eventType)}</strong>, has been marked as completed and your client portal access is now closed.`)}
+    ${paragraph("It was a pleasure working with you. We hope to play for you again soon.", `color:${MUTED};font-size:14px;`)}
   `);
 }
 
 function adminPasswordResetTemplate({ resetLink }) {
   return wrapper(`
-    <div style="margin-bottom:18px;">${labelBadge("Manager access")}</div>
-    <h2 style="color:${GOLD};margin:0 0 12px;font-size:30px;line-height:1.2;">Manager password reset</h2>
-    <p style="color:${TEXT};margin:0;line-height:1.7;font-size:15px;">A password reset was requested for the FOBIbass manager dashboard. Use the button below to continue.</p>
+    ${eyebrow("Manager access")}
+    ${heading("Manager password reset")}
+    ${paragraph("A password reset was requested for the FOBIbass manager dashboard. Use the button below to continue.")}
     ${button(resetLink, "Reset password")}
-    <p style="color:${MUTED};font-size:13px;margin-top:18px;line-height:1.6;">This link expires in 1 hour. If you did not request this reset, you can safely ignore this message.</p>
+    ${paragraph("This link expires in 1 hour. If you did not request this reset, you can safely ignore this message.", `margin-top:18px;font-size:13px;color:${MUTED};`)}
   `);
 }
 
@@ -258,4 +177,3 @@ module.exports = {
   accessClosedTemplate,
   adminPasswordResetTemplate,
 };
-

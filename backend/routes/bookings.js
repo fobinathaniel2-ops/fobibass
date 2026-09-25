@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const { readStore, update, id, now } = require("../config/store");
 const { sendMail } = require("../config/mailer");
 const { buildGoogleCalendarLink } = require("../utils/calendar");
+const { isValidDate, dateConflict } = require("../utils/availability");
 const { adminNewBookingTemplate, bookingConfirmationTemplate } = require("../templates/emailTemplates");
 
 const router = express.Router();
@@ -16,6 +17,8 @@ router.post("/", async (req, res) => {
     if (!name || !email || !phone || !eventType || !eventDate || !location) return res.status(400).json({ error: "Missing required booking fields." });
     const normalizedEmail = String(email).trim().toLowerCase();
     const store = await readStore();
+    if (!isValidDate(eventDate)) return res.status(400).json({ error: "Please choose a valid event date." });
+    if (dateConflict(store, eventDate)) return res.status(409).json({ error: "Sorry, that date is already booked. Please choose another date." });
     let user = store.users.find((item) => item.email === normalizedEmail);
     let password = null;
     if (!user) { password = temporaryPassword(); user = { id: id(), email: normalizedEmail, name, role: "client", passwordHash: await bcrypt.hash(password, 12), active: true, createdAt: now() }; }

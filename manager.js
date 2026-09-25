@@ -40,6 +40,44 @@ const showPageMessageModal = ({ title = "Notice", message = "Something happened.
   document.body.classList.add("page-modal-open");
 };
 
+// In-page confirmation dialog (replaces the browser's confirm/prompt boxes). Resolves true or false.
+const confirmModal = ({ title = "Are you sure?", message = "", confirmText = "Confirm", cancelText = "Cancel", danger = false } = {}) => new Promise((resolve) => {
+  const modal = document.createElement("div");
+  modal.className = "page-message-modal";
+  modal.innerHTML = `
+    <div class="page-message-modal-backdrop" data-cancel="true"></div>
+    <div class="page-message-modal-card" role="alertdialog" aria-modal="true" aria-labelledby="confirmModalTitle">
+      <div class="page-message-modal-header"><h3 id="confirmModalTitle"></h3></div>
+      <p class="page-message-modal-message"></p>
+      <div class="page-message-modal-actions is-split">
+        <button type="button" class="page-message-modal-button is-secondary" data-cancel="true"></button>
+        <button type="button" class="page-message-modal-button${danger ? " is-danger" : ""}" data-confirm="true"></button>
+      </div>
+    </div>
+  `;
+  modal.querySelector("#confirmModalTitle").textContent = title;
+  modal.querySelector(".page-message-modal-message").textContent = message;
+  modal.querySelector("[data-cancel].page-message-modal-button").textContent = cancelText;
+  modal.querySelector("[data-confirm]").textContent = confirmText;
+
+  const onKey = (event) => { if (event.key === "Escape") close(false); };
+  const close = (result) => {
+    document.removeEventListener("keydown", onKey);
+    modal.remove();
+    if (!document.querySelector(".page-message-modal")) document.body.classList.remove("page-modal-open");
+    resolve(result);
+  };
+
+  modal.addEventListener("click", (event) => {
+    if (event.target.closest("[data-confirm]")) close(true);
+    else if (event.target.closest("[data-cancel]")) close(false);
+  });
+  document.addEventListener("keydown", onKey);
+  document.body.appendChild(modal);
+  document.body.classList.add("page-modal-open");
+  modal.querySelector("[data-cancel].page-message-modal-button").focus();
+});
+
 const logout = async () => { await fetch("/api/auth/logout", { method: "POST" }); window.location.href = "admin-login.html"; };
 document.querySelectorAll("#logoutBtn, #profileLogoutBtn").forEach((button) => button.addEventListener("click", logout));
 
@@ -93,14 +131,14 @@ const renderNotifications = (bookings) => {
     if (booking.confirmationRequestSent) {
       notifications.push({
         title: "Attendance confirmation needed",
-        detail: `${booking.name} • ${booking.event} • ${booking.date}`,
+        detail: escapeHtml(`${booking.name} • ${booking.event} • ${booking.date}`),
       });
     }
 
     if ((booking.status || "Pending") === "Pending") {
       notifications.push({
         title: "New booking request",
-        detail: `${booking.name} • ${booking.event} • ${booking.date}`,
+        detail: escapeHtml(`${booking.name} • ${booking.event} • ${booking.date}`),
       });
     }
   });
@@ -130,6 +168,54 @@ const getFilteredBookings = (bookings) => {
     return matchesSearch && matchesStatus;
   });
 };
+
+function formatBookingDate(value) {
+  const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!match) return String(value || "No date");
+  const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  return date.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+}
+
+function updateBookingChipCounts(bookings) {
+  document.querySelectorAll("[data-count]").forEach((node) => {
+    const key = node.dataset.count;
+    node.textContent = key === "All" ? bookings.length : bookings.filter((item) => normalizeBookingStatus(item.status) === key).length;
+  });
+}
+
+function renderAvailabilityList(data) {
+  const list = document.getElementById("availabilityList");
+  if (!list) return;
+  const rows = data.availabilityOverview || [];
+  const labels = { booked: "Booked", pending: "Requested", available: "Open" };
+
+  list.innerHTML = rows.length ? rows.map((row) => {
+    const day = String(row.date).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    const date = day ? new Date(Number(day[1]), Number(day[2]) - 1, Number(day[3])) : null;
+    const month = date ? date.toLocaleDateString(undefined, { month: "short" }) : "";
+    const weekday = date ? date.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : "";
+    const detail = row.source === "booking"
+      ? `Booking &middot; ${escapeHtml(row.client)}${row.eventType ? " &middot; " + escapeHtml(row.eventType) : ""}`
+      : (row.note ? escapeHtml(row.note) : (row.status === "booked" ? "Blocked by you" : "Marked open"));
+    return `
+      <div class="availability-row is-${row.status}">
+        <div class="availability-date"><strong>${date ? date.getDate() : ""}</strong><span>${escapeHtml(month)}</span></div>
+        <div class="availability-info">
+          <span class="availability-badge is-${row.status}">${labels[row.status] || row.status}</span>
+          <em>${detail}</em>
+          <small>${escapeHtml(weekday)}</small>
+        </div>
+        ${row.source === "manual" ? `<button type="button" class="availability-remove" data-availability-id="${escapeHtml(row.id)}" aria-label="Remove this date entry"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>` : ""}
+      </div>
+    `;
+  }).join("") : '<div class="list-empty">No upcoming booked or blocked dates. Your calendar is fully open.</div>';
+}
+
+async function refreshAvailabilityList() {
+  const response = await fetch("/api/admin/content");
+  if (!response.ok) return;
+  renderAvailabilityList(await response.json());
+}
 
 async function loadManager({ notify = false } = {}) {
   const response = await fetch("/api/admin/bookings");
@@ -167,35 +253,51 @@ async function loadManager({ notify = false } = {}) {
   renderNotifications(bookings);
 
   if (table) {
-    table.innerHTML = filtered.map((booking) => {
-      const normalizedStatus = normalizeBookingStatus(booking.status);
+    table.innerHTML = filtered.length ? filtered.map((booking) => {
+      const status = normalizeBookingStatus(booking.status);
+      const id = escapeHtml(booking.id);
+      const name = escapeHtml(booking.name);
+      const email = escapeHtml(booking.email);
+      const phone = escapeHtml(booking.phone);
+      const quickActions = status === "Pending"
+        ? `<button type="button" class="booking-action is-approve" data-quick-status="Approved" data-booking-id="${id}"><i class="fa-solid fa-check" aria-hidden="true"></i> Approve</button>
+           <button type="button" class="booking-action is-reject" data-quick-status="Rejected" data-booking-id="${id}"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Decline</button>`
+        : "";
       return `
-        <tr>
-          <td data-label="Name">${escapeHtml(booking.name)}</td>
-          <td data-label="Email">${escapeHtml(booking.email)}</td>
-          <td data-label="Phone">${escapeHtml(booking.phone)}</td>
-          <td data-label="Event">${escapeHtml(booking.event)}</td>
-          <td data-label="Date">${escapeHtml(booking.date)}</td>
-          <td data-label="Location">${escapeHtml(booking.location)}</td>
-          <td data-label="Status">
-            <div class="booking-status-cell">
-              <span class="status-badge ${getBookingStatusClass(normalizedStatus)}">${normalizedStatus}</span>
-              <select class="booking-status-select" data-booking-id="${escapeHtml(booking.id)}" aria-label="Change booking status for ${escapeHtml(booking.name || "booking")}">
-                ${BOOKING_STATUS_OPTIONS.map((option) => `<option value="${option}" ${option === normalizedStatus ? "selected" : ""}>${option}</option>`).join("")}
-              </select>
+        <article class="booking-card is-${status.toLowerCase()}">
+          <div class="booking-card-top">
+            <div class="booking-card-title">
+              <h3>${name}</h3>
+              <p>${escapeHtml(booking.event)} &middot; ${escapeHtml(formatBookingDate(booking.date))}</p>
             </div>
-          </td>
-          <td data-label="Action">
-            <button type="button" class="booking-delete-button" data-booking-id="${escapeHtml(booking.id)}" data-booking-name="${escapeHtml(booking.name)}" aria-label="Delete booking for ${escapeHtml(booking.name || "this client")}"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
-          </td>
-        </tr>
+            <span class="status-badge ${getBookingStatusClass(status)}">${status}</span>
+          </div>
+          <div class="booking-card-meta">
+            <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i>${escapeHtml(booking.location)}</span>
+            <a href="mailto:${email}"><i class="fa-regular fa-envelope" aria-hidden="true"></i>${email}</a>
+            <a href="tel:${phone}"><i class="fa-solid fa-phone" aria-hidden="true"></i>${phone}</a>
+            ${booking.budget ? `<span><i class="fa-solid fa-coins" aria-hidden="true"></i>${escapeHtml(booking.budget)}</span>` : ""}
+          </div>
+          ${booking.message ? `<p class="booking-card-note">${escapeHtml(booking.message)}</p>` : ""}
+          <div class="booking-card-actions">
+            ${quickActions}
+            <label class="booking-status-label">
+              <span>Status</span>
+              <select class="booking-status-select" data-booking-id="${id}" aria-label="Change booking status for ${name}">
+                ${BOOKING_STATUS_OPTIONS.map((option) => `<option value="${option}" ${option === status ? "selected" : ""}>${option}</option>`).join("")}
+              </select>
+            </label>
+            <button type="button" class="booking-delete-button" data-booking-id="${id}" data-booking-name="${name}" aria-label="Delete booking for ${name}"><i class="fa-solid fa-trash" aria-hidden="true"></i> Delete</button>
+          </div>
+        </article>
       `;
-    }).join("");
+    }).join("") : `<div class="booking-empty"><i class="fa-regular fa-calendar" aria-hidden="true"></i><strong>${bookings.length ? "No bookings match this filter." : "No bookings yet."}</strong><span>${bookings.length ? "Try a different search or status." : "New requests from your website will appear here."}</span></div>`;
   }
 
   setText("bookingCount", bookings.length);
   setText("pendingCount", bookings.filter((item) => item.status === "Pending").length);
   setText("approvedCount", bookings.filter((item) => item.status === "Approved").length);
+  updateBookingChipCounts(bookings);
 }
 
 async function loadContent() {
@@ -236,12 +338,7 @@ async function loadContent() {
     const videosList = document.getElementById("videoList");
     const servicesList = document.getElementById("serviceList");
 
-    if (availabilityList) {
-      const items = data.availability || [];
-      availabilityList.innerHTML = items.length
-        ? items.map((item) => `<div class="list-item"><strong>${item.date}</strong><span>${item.event || "General availability"}</span><em>${item.status || "available"}</em></div>`).join("")
-        : '<div class="list-empty">No availability saved yet.</div>';
-    }
+    refreshAvailabilityList().catch(() => {});
 
     if (videosList) {
       const items = data.videos || [];
@@ -440,6 +537,7 @@ const updateBookingStatus = async (bookingId, status) => {
   }
 
   await loadManager();
+  refreshAvailabilityList().catch(() => {});
 };
 
 if (bookingSearch) bookingSearch.addEventListener("input", () => loadManager().catch(() => {}));
@@ -482,25 +580,45 @@ document.addEventListener("change", async (event) => {
   }
 });
 
+const refreshAfterBookingChange = async () => {
+  await loadManager();
+  refreshAvailabilityList().catch(() => {});
+};
+
 const deleteBooking = async (bookingId, name) => {
-  if (!window.confirm("Delete the booking from " + (name || "this client") + "? This cannot be undone.")) return;
+  const confirmed = await confirmModal({
+    title: "Delete this booking?",
+    message: `${name ? "The booking from " + name : "This booking"} will be removed permanently. This cannot be undone.`,
+    confirmText: "Delete",
+    danger: true,
+  });
+  if (!confirmed) return;
+
   try {
     const response = await fetch("/api/admin/bookings/" + encodeURIComponent(bookingId) + "/delete", { method: "POST" });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || "Could not delete booking.");
-    await loadManager();
+    await refreshAfterBookingChange();
   } catch (error) {
     showPageMessageModal({ title: "Delete failed", message: error.message || "Could not delete booking.", buttonText: "Try again" });
   }
 };
 
 const clearAllBookings = async () => {
-  const typed = window.prompt("This permanently deletes ALL bookings and the client accounts created from them. Type DELETE to confirm.");
-  if (typed === null) return;
-  if (typed.trim() !== "DELETE") {
-    showPageMessageModal({ title: "Nothing removed", message: "You did not type DELETE, so no bookings were removed.", buttonText: "OK" });
+  const count = Number(document.getElementById("bookingCount")?.textContent) || 0;
+  if (!count) {
+    showPageMessageModal({ title: "Nothing to clear", message: "There are no bookings to clear.", buttonText: "OK" });
     return;
   }
+
+  const confirmed = await confirmModal({
+    title: "Clear all bookings?",
+    message: `This permanently deletes all ${count} booking${count === 1 ? "" : "s"} and the client accounts created from them. This cannot be undone.`,
+    confirmText: "Clear all",
+    danger: true,
+  });
+  if (!confirmed) return;
+
   try {
     const response = await fetch("/api/admin/bookings/clear", {
       method: "POST",
@@ -509,16 +627,53 @@ const clearAllBookings = async () => {
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || "Could not clear bookings.");
-    await loadManager();
+    await refreshAfterBookingChange();
     showPageMessageModal({ title: "Bookings cleared", message: "Removed " + data.removedBookings + " booking(s).", buttonText: "Done" });
   } catch (error) {
     showPageMessageModal({ title: "Clear failed", message: error.message || "Could not clear bookings.", buttonText: "Try again" });
   }
 };
 
-document.addEventListener("click", (event) => {
-  const button = event.target.closest(".booking-delete-button");
-  if (button) deleteBooking(button.dataset.bookingId, button.dataset.bookingName);
+const removeAvailabilityEntry = async (entryId) => {
+  const confirmed = await confirmModal({
+    title: "Remove this date?",
+    message: "This removes your manual entry. The date goes back to the calendar's normal state.",
+    confirmText: "Remove",
+    danger: true,
+  });
+  if (!confirmed) return;
+
+  try {
+    const response = await fetch("/api/admin/content/availability/" + encodeURIComponent(entryId) + "/delete", { method: "POST" });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "Could not remove the date.");
+    await refreshAvailabilityList();
+  } catch (error) {
+    showPageMessageModal({ title: "Remove failed", message: error.message || "Could not remove the date.", buttonText: "Try again" });
+  }
+};
+
+document.addEventListener("click", async (event) => {
+  const deleteButton = event.target.closest(".booking-delete-button");
+  if (deleteButton) {
+    deleteBooking(deleteButton.dataset.bookingId, deleteButton.dataset.bookingName);
+    return;
+  }
+
+  const quickButton = event.target.closest("[data-quick-status]");
+  if (quickButton) {
+    quickButton.disabled = true;
+    try {
+      await updateBookingStatus(quickButton.dataset.bookingId, quickButton.dataset.quickStatus);
+    } catch (error) {
+      showPageMessageModal({ title: "Booking update failed", message: error.message || "Could not update booking status.", buttonText: "Try again" });
+      loadManager().catch(() => {});
+    }
+    return;
+  }
+
+  const removeButton = event.target.closest(".availability-remove");
+  if (removeButton) removeAvailabilityEntry(removeButton.dataset.availabilityId);
 });
 
 const clearBookingsBtn = document.getElementById("clearBookingsBtn");
