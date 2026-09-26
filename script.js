@@ -239,7 +239,7 @@ async function hydrateSiteContent() {
         </article>
       `;
       }).join("");
-      testimonialContainer.innerHTML = `${testimonialCards}<button class="testimonial-action" type="button" data-open-testimonial>Share your experience <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>`;
+      testimonialContainer.innerHTML = testimonialCards;
     }
 
     renderAvailability(data.availability);

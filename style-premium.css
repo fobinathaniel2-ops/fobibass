@@ -140,6 +140,7 @@ section h2::before { content: none; }
 .video-slider-progress { flex: 1; height: 3px; overflow: hidden; border-radius: 9px; background: rgba(255,255,255,.12); }
 .video-slider-progress span { display: block; width: 33%; height: 100%; border-radius: inherit; background: var(--yellow); transition: width .65s cubic-bezier(.2,.8,.2,1); }
 #testimonialContainer, #calendar { min-height: 138px; }
+#testimonialContainer:empty { min-height: 0; }
 .empty-content { display: grid; justify-items: center; gap: 8px; min-height: 138px; padding: 28px 20px; border: 1px dashed rgba(255,208,0,.28); border-radius: 12px; background: rgba(255,255,255,.018); color: var(--muted); text-align: center; }
 .empty-content i { color: var(--yellow); font-size: 21px; }
 .empty-content strong { color: var(--white); font: 600 14px 'Space Grotesk', sans-serif; }
