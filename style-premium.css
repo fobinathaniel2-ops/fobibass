@@ -172,6 +172,7 @@ section h2::before { content: none; }
 .video-card:hover { border-color: var(--yellow); transform: translateY(-3px); }
 .video-card-featured { grid-column: span 2; }
 .video-poster { position: relative; display: grid; min-height: 150px; place-items: center; overflow: hidden; border-radius: 8px; background-color: #17212a; background-position: center; background-size: cover; }
+.video-poster .video-cover { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; object-fit: cover; }
 .video-poster::before { position: absolute; inset: 0; content: ''; background: linear-gradient(180deg, rgba(3,7,10,.08), rgba(3,7,10,.82)); }
 .video-play { position: relative; z-index: 1; display: grid; width: 52px; height: 52px; place-items: center; padding: 0; border: 1px solid rgba(255,255,255,.8); border-radius: 50%; background: rgba(4,8,11,.65); color: var(--yellow); cursor: pointer; }
 .video-play:hover { transform: scale(1.08); }

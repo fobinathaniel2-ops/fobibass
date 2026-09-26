@@ -138,12 +138,36 @@ if (testimonialForm) testimonialForm.addEventListener("submit", async (event) =>
 });
 
 async function refreshYoutubeStats() { try { const response = await fetch(`${API_BASE}/api/youtube/stats`); if (!response.ok) return; const stats = await response.json(); byId("youtubeHandle").textContent = stats.handle; byId("youtubeHandle").href = stats.url; byId("youtubeSubscribers").textContent = new Intl.NumberFormat("en-US").format(stats.subscribers); byId("youtubeVideos").textContent = new Intl.NumberFormat("en-US").format(stats.videos); byId("youtubeViews").textContent = new Intl.NumberFormat("en-US").format(stats.views); } catch (error) { console.warn("YouTube stats unavailable", error.message); } }
-async function loadYoutubeVideos() { const container = byId("videoContainer"); if (!container) return; try { const response = await fetch(`${API_BASE}/api/youtube/videos`); if (!response.ok) { updateVideoSlider(); return; } const data = await response.json(); const cards = (data.videos || []).map((video) => `<article class="video-card video-card-youtube" data-youtube-id="${escapeHtml(video.id)}"><div class="video-poster" style="background-image:url('${escapeHtml(video.thumbnail || "")}')"><button class="video-play" type="button" aria-label="Play video"><i class="fa-solid fa-play"></i></button><span class="video-label">YouTube</span></div><h3>${escapeHtml(video.title)}</h3><p>Latest upload on @FOBIbass</p></article>`).join(""); if (cards) { container.querySelectorAll("[data-local-video]").forEach((card) => card.remove()); container.insertAdjacentHTML("beforeend", cards); } updateVideoSlider(); } catch (error) { console.warn("YouTube videos unavailable; showing local videos.", error.message); updateVideoSlider(); } }
+function renderUploadedVideos(items) {
+  const container = byId("videoContainer");
+  if (!container) return;
+
+  container.querySelectorAll("[data-uploaded-video]").forEach((card) => card.remove());
+  const cards = (Array.isArray(items) ? items : [])
+    .filter((video) => video && video.title && video.url)
+    .map((video) => `
+      <article class="video-card video-card-uploaded" data-local-video="true" data-uploaded-video="true" data-video-url="${escapeHtml(video.url)}">
+        <div class="video-poster">
+          ${video.cover ? `<img class="video-cover" src="${escapeHtml(video.cover)}" alt="" loading="lazy">` : ""}
+          <button class="video-play" type="button" aria-label="Play ${escapeHtml(video.title)}"><i class="fa-solid fa-play"></i></button>
+          <span class="video-label">${escapeHtml(video.category || "Video")}</span>
+        </div>
+        <h3>${escapeHtml(video.title)}</h3>
+        <p>${escapeHtml(video.category || "Video")}</p>
+      </article>
+    `).join("");
+
+  if (cards) container.insertAdjacentHTML("afterbegin", cards);
+  updateVideoSlider();
+}
+
+async function loadYoutubeVideos() { const container = byId("videoContainer"); if (!container) return; try { const response = await fetch(`${API_BASE}/api/youtube/videos`); if (!response.ok) { updateVideoSlider(); return; } const data = await response.json(); const cards = (data.videos || []).map((video) => `<article class="video-card video-card-youtube" data-youtube-id="${escapeHtml(video.id)}"><div class="video-poster" style="background-image:url('${escapeHtml(video.thumbnail || "")}')"><button class="video-play" type="button" aria-label="Play video"><i class="fa-solid fa-play"></i></button><span class="video-label">YouTube</span></div><h3>${escapeHtml(video.title)}</h3><p>Latest upload on @FOBIbass</p></article>`).join(""); if (cards) { container.querySelectorAll("[data-local-video]:not([data-uploaded-video])").forEach((card) => card.remove()); container.insertAdjacentHTML("beforeend", cards); } updateVideoSlider(); } catch (error) { console.warn("YouTube videos unavailable; showing local videos.", error.message); updateVideoSlider(); } }
 async function hydrateSiteContent() {
   try {
     const response = await fetch(`${API_BASE}/api/content`);
     if (!response.ok) return;
     const data = await response.json();
+    renderUploadedVideos(data.videos);
     const settings = data.settings || {};
     const hero = settings.hero || {};
     const bio = settings.bio || {};
