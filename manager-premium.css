@@ -846,19 +846,19 @@ td {
 }
 .video-card {
   display: grid;
-  grid-template-columns: minmax(0, 112px) minmax(0, 1fr);
-  width: min(100%, 560px);
+  grid-template-columns: minmax(0, 96px) minmax(0, 1fr);
+  width: min(100%, 420px);
   justify-self: start;
   align-items: center;
-  gap: 12px;
-  padding: 10px;
+  gap: 10px;
+  padding: 9px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: rgba(255,255,255,0.02);
 }
 .video-preview {
   position: relative;
-  height: 78px;
+  height: 68px;
   border-radius: 8px;
   overflow: hidden;
   background: #0d0f11;
