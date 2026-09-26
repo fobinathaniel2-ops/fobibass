@@ -1,6 +1,7 @@
 const express = require("express");
 const { readStore, update } = require("../config/store");
 const cloudinary = require("../config/cloudinary");
+const cloudinaryAssetFromUrl = require("../utils/cloudinaryAsset");
 const verifyAdminAuth = require("../middleware/verifyAdminAuth");
 const { signToken, verifyToken } = require("../utils/tokens");
 const { isValidDate, adminOverview, dateConflict } = require("../utils/availability");
@@ -236,8 +237,8 @@ router.post("/content/videos/:id/delete", verifyAdminAuth, async (req, res) => {
   if (!video) return res.status(404).json({ error: "Video not found." });
 
   const assets = [
-    video.publicId ? { publicId: video.publicId, resourceType: "video" } : null,
-    video.coverPublicId ? { publicId: video.coverPublicId, resourceType: "image" } : null,
+    video.publicId ? { publicId: video.publicId, resourceType: "video" } : cloudinaryAssetFromUrl(video.url, cloudinary.config().cloud_name),
+    video.coverPublicId ? { publicId: video.coverPublicId, resourceType: "image" } : cloudinaryAssetFromUrl(video.cover, cloudinary.config().cloud_name),
   ].filter(Boolean);
   let assetsDeleted = true;
 
