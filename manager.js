@@ -346,14 +346,17 @@ async function loadContent() {
         ? items.map((item) => `
           <div class="video-card">
             <div class="video-preview">
-              ${item.url ? `<video controls preload="metadata" src="${item.url}"></video>` : (item.cover ? `<img src="${item.cover}" alt="${item.title || "Uploaded media"}">` : `<div class="video-placeholder"><i class="fa-solid fa-video" aria-hidden="true"></i></div>`)}
+              ${item.cover ? `<img src="${escapeHtml(item.cover)}" alt="" loading="lazy">` : (item.url ? `<video muted preload="metadata" src="${escapeHtml(item.url)}"></video>` : `<div class="video-placeholder"><i class="fa-solid fa-video" aria-hidden="true"></i></div>`)}
             </div>
             <div class="video-meta">
-              <div>
-                <strong>${item.title || "Untitled video"}</strong>
-                <span>${item.category || "video"}</span>
+              <div class="video-info">
+                <strong>${escapeHtml(item.title || "Untitled video")}</strong>
+                <span>${escapeHtml(item.category || "video")}</span>
               </div>
-              <a href="${item.url || item.cover || "#"}" target="_blank" rel="noopener">Open</a>
+              <div class="video-actions">
+                <a href="${escapeHtml(item.url || item.cover || "#")}" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> Open</a>
+                <button type="button" class="video-delete-button" data-video-id="${escapeHtml(item.id)}" data-video-title="${escapeHtml(item.title || "Untitled video")}" aria-label="Delete ${escapeHtml(item.title || "Untitled video")}" title="Delete video"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
+              </div>
             </div>
           </div>
         `).join("")
@@ -439,7 +442,7 @@ if (videoForm) {
       status.textContent = "Uploading video to Cloudinary...";
 
       const uploadFile = async (uploadFileInput, kind) => {
-        if (!uploadFileInput) return "";
+        if (!uploadFileInput) return null;
         const uploadForm = new FormData();
         uploadForm.append("file", uploadFileInput);
         uploadForm.append("category", kind);
@@ -451,17 +454,24 @@ if (videoForm) {
           throw new Error(data.error || "Upload failed.");
         }
 
-        return data.url || "";
+        return {
+          url: data.url || "",
+          publicId: data.publicId || "",
+          resourceType: data.resourceType || kind,
+        };
       };
 
-      const videoUrl = await uploadFile(videoFile, "video");
-      const coverUrl = coverFile ? await uploadFile(coverFile, "gallery") : "";
+      const uploadedVideo = await uploadFile(videoFile, "video");
+      if (!uploadedVideo?.url) throw new Error("Cloudinary did not return a video URL.");
+      const uploadedCover = coverFile ? await uploadFile(coverFile, "gallery") : null;
 
       await saveContent("/api/admin/content/videos", {
         title,
         category,
-        url: videoUrl,
-        cover: coverUrl,
+        url: uploadedVideo.url,
+        publicId: uploadedVideo.publicId,
+        cover: uploadedCover?.url || "",
+        coverPublicId: uploadedCover?.publicId || "",
       });
 
       await loadContent();
@@ -653,7 +663,37 @@ const removeAvailabilityEntry = async (entryId) => {
   }
 };
 
+const removeVideo = async (videoId, videoTitle) => {
+  const confirmed = await confirmModal({
+    title: "Delete this video?",
+    message: `"${videoTitle}" will be removed from the site. Its Cloudinary files will also be deleted when available.`,
+    confirmText: "Delete video",
+    danger: true,
+  });
+  if (!confirmed) return;
+
+  try {
+    const response = await fetch(`/api/admin/content/videos/${encodeURIComponent(videoId)}/delete`, { method: "POST" });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "Could not delete the video.");
+    await loadContent();
+    showPageMessageModal({
+      title: "Video removed",
+      message: data.assetsDeleted === false ? "The video was removed from the site, but Cloudinary cleanup could not be completed." : "The video was removed from the site.",
+      buttonText: "Done",
+    });
+  } catch (error) {
+    showPageMessageModal({ title: "Delete failed", message: error.message || "Could not delete the video.", buttonText: "Try again" });
+  }
+};
+
 document.addEventListener("click", async (event) => {
+  const videoDeleteButton = event.target.closest(".video-delete-button");
+  if (videoDeleteButton) {
+    await removeVideo(videoDeleteButton.dataset.videoId, videoDeleteButton.dataset.videoTitle);
+    return;
+  }
+
   const deleteButton = event.target.closest(".booking-delete-button");
   if (deleteButton) {
     deleteBooking(deleteButton.dataset.bookingId, deleteButton.dataset.bookingName);

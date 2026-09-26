@@ -1,5 +1,6 @@
 const express = require("express");
 const { readStore, update } = require("../config/store");
+const cloudinary = require("../config/cloudinary");
 const verifyAdminAuth = require("../middleware/verifyAdminAuth");
 const { signToken, verifyToken } = require("../utils/tokens");
 const { isValidDate, adminOverview, dateConflict } = require("../utils/availability");
@@ -205,7 +206,7 @@ router.post("/content/availability/:id/delete", verifyAdminAuth, async (req, res
 });
 
 router.post("/content/videos", verifyAdminAuth, async (req, res) => {
-  const { title, category, url, cover } = req.body || {};
+  const { title, category, url, cover, publicId, coverPublicId } = req.body || {};
   if (!title || !url) return res.status(400).json({ error: "Title and URL are required." });
 
   await update((store) => {
@@ -216,10 +217,48 @@ router.post("/content/videos", verifyAdminAuth, async (req, res) => {
       category: category || "video",
       url,
       cover: cover || "",
+      publicId: typeof publicId === "string" ? publicId : "",
+      coverPublicId: typeof coverPublicId === "string" ? coverPublicId : "",
     });
   });
 
   return res.json({ ok: true });
+});
+
+router.post("/content/videos/:id/delete", verifyAdminAuth, async (req, res) => {
+  const video = await update((store) => {
+    const existing = (store.videos || []).find((item) => String(item.id) === req.params.id);
+    if (!existing) return null;
+    store.videos = store.videos.filter((item) => String(item.id) !== req.params.id);
+    return existing;
+  });
+
+  if (!video) return res.status(404).json({ error: "Video not found." });
+
+  const assets = [
+    video.publicId ? { publicId: video.publicId, resourceType: "video" } : null,
+    video.coverPublicId ? { publicId: video.coverPublicId, resourceType: "image" } : null,
+  ].filter(Boolean);
+  let assetsDeleted = true;
+
+  if (assets.length && !cloudinary.isConfigured) {
+    assetsDeleted = false;
+  } else {
+    for (const asset of assets) {
+      try {
+        const result = await cloudinary.uploader.destroy(asset.publicId, {
+          resource_type: asset.resourceType,
+          invalidate: true,
+        });
+        if (result.result !== "ok" && result.result !== "not found") assetsDeleted = false;
+      } catch (error) {
+        console.error("[POST /api/admin/content/videos/:id/delete]", error.message);
+        assetsDeleted = false;
+      }
+    }
+  }
+
+  return res.json({ ok: true, assetsDeleted });
 });
 
 router.post("/content/services", verifyAdminAuth, async (req, res) => {
