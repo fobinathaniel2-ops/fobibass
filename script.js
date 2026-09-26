@@ -220,9 +220,7 @@ async function hydrateSiteContent() {
 
     const testimonialContainer = byId("testimonialContainer");
     if (testimonialContainer && Array.isArray(data.testimonials) && data.testimonials.length) {
-      const defaultFallback = testimonialContainer.querySelector("[data-fallback]");
-      if (defaultFallback) defaultFallback.remove();
-      testimonialContainer.innerHTML = data.testimonials.map((testimonial) => {
+      const testimonialCards = data.testimonials.map((testimonial) => {
         const name = String(testimonial.name || "").trim() || "Anonymous";
         const initial = name.charAt(0).toUpperCase();
         const rating = Math.min(5, Math.max(1, Number(testimonial.rating) || 5));
@@ -241,6 +239,7 @@ async function hydrateSiteContent() {
         </article>
       `;
       }).join("");
+      testimonialContainer.innerHTML = `${testimonialCards}<button class="testimonial-action" type="button" data-open-testimonial>Share your experience <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>`;
     }
 
     renderAvailability(data.availability);
