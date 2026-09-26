@@ -60,6 +60,9 @@ app.use((req, res) => res.status(404).json({ error: "Not found." }));
 // Central error handler
 app.use((err, req, res, next) => {
   console.error("[unhandled]", err);
+  if (err.code === "PERSISTENT_STORE_REQUIRED") {
+    return res.status(err.status).json({ error: err.message });
+  }
   res.status(500).json({ error: "Internal server error." });
 });
 

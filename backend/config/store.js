@@ -1,7 +1,6 @@
 const path = require("path");
 const crypto = require("crypto");
 const fs = require("fs");
-const { neon } = require("@neondatabase/serverless");
 
 const DATA_DIR = path.join(__dirname, "..", "data");
 const DATA_FILE = path.join(DATA_DIR, "store.json");
@@ -28,12 +27,22 @@ function readLocalStore() {
 }
 
 function getDatabase() {
-  if (!process.env.DATABASE_URL) return null;
+  if (!process.env.DATABASE_URL) {
+    if (process.env.NODE_ENV === "production" || process.env.VERCEL || process.env.NETLIFY) {
+      const error = new Error("DATABASE_URL must be configured for persistent production storage.");
+      error.code = "PERSISTENT_STORE_REQUIRED";
+      error.status = 503;
+      throw error;
+    }
+    return null;
+  }
+  const { neon } = require("@neondatabase/serverless");
   return neon(process.env.DATABASE_URL);
 }
 
 async function ensureDatabase(sql) {
-  await sql`CREATE TABLE IF NOT EXISTS app_state (id integer PRIMARY KEY CHECK (id = 1), data jsonb NOT NULL)`;
+  await sql`CREATE TABLE IF NOT EXISTS app_state (id integer PRIMARY KEY CHECK (id = 1), data jsonb NOT NULL, version bigint NOT NULL DEFAULT 1)`;
+  await sql`ALTER TABLE app_state ADD COLUMN IF NOT EXISTS version bigint NOT NULL DEFAULT 1`;
 }
 
 async function readStore() {
@@ -41,13 +50,14 @@ async function readStore() {
   if (!sql) return readLocalStore();
 
   await ensureDatabase(sql);
-  const rows = await sql`SELECT data FROM app_state WHERE id = 1`;
+  let rows = await sql`SELECT data FROM app_state WHERE id = 1`;
   if (!rows.length) {
     const initial = readLocalStore();
-    await sql`INSERT INTO app_state (id, data) VALUES (1, ${JSON.stringify(initial)}::jsonb)`;
-    return initial;
+    await sql`INSERT INTO app_state (id, data) VALUES (1, ${JSON.stringify(initial)}::jsonb) ON CONFLICT (id) DO NOTHING`;
+    rows = await sql`SELECT data FROM app_state WHERE id = 1`;
   }
 
+  if (!rows.length) throw new Error("Could not initialize persistent content storage.");
   return { ...clone(defaults), ...rows[0].data };
 }
 
@@ -56,8 +66,8 @@ async function writeStore(store) {
   if (sql) {
     await ensureDatabase(sql);
     await sql`
-      INSERT INTO app_state (id, data) VALUES (1, ${JSON.stringify(store)}::jsonb)
-      ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data
+      INSERT INTO app_state (id, data, version) VALUES (1, ${JSON.stringify(store)}::jsonb, 1)
+      ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data, version = app_state.version + 1
     `;
     return;
   }
@@ -67,13 +77,50 @@ async function writeStore(store) {
   fs.writeFileSync(temp, JSON.stringify(store, null, 2));
   fs.renameSync(temp, DATA_FILE);
 }
+
+let localUpdateQueue = Promise.resolve();
+
 function id() { return crypto.randomUUID(); }
 function now() { return new Date().toISOString(); }
 async function update(mutator) {
-  const store = await readStore();
-  const result = await mutator(store);
-  await writeStore(store);
-  return result;
+  const sql = getDatabase();
+  if (!sql) {
+    const operation = localUpdateQueue.then(async () => {
+      const store = readLocalStore();
+      const result = await mutator(store);
+      await writeStore(store);
+      return result;
+    });
+    localUpdateQueue = operation.catch(() => {});
+    return operation;
+  }
+
+  await ensureDatabase(sql);
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    let rows = await sql`SELECT data, version FROM app_state WHERE id = 1`;
+    if (!rows.length) {
+      const initial = readLocalStore();
+      const inserted = await sql`
+        INSERT INTO app_state (id, data, version) VALUES (1, ${JSON.stringify(initial)}::jsonb, 1)
+        ON CONFLICT (id) DO NOTHING
+        RETURNING version
+      `;
+      if (!inserted.length) continue;
+      rows = [{ data: initial, version: inserted[0].version }];
+    }
+
+    const store = { ...clone(defaults), ...rows[0].data };
+    const result = await mutator(store);
+    const saved = await sql`
+      UPDATE app_state
+      SET data = ${JSON.stringify(store)}::jsonb, version = version + 1
+      WHERE id = 1 AND version = ${rows[0].version}
+      RETURNING version
+    `;
+    if (saved.length) return result;
+  }
+
+  throw new Error("Content changed while saving. Please retry the update.");
 }
 
 module.exports = { readStore, writeStore, update, id, now, defaults };
