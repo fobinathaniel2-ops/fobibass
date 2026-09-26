@@ -212,20 +212,20 @@ function renderAvailabilityList(data) {
 }
 
 async function refreshAvailabilityList() {
-  const response = await fetch("/api/admin/content");
+  const response = await fetch("/api/admin/content", { cache: "no-store" });
   if (!response.ok) return;
   renderAvailabilityList(await response.json());
 }
 
 async function loadManager({ notify = false } = {}) {
-  const response = await fetch("/api/admin/bookings");
+  const response = await fetch("/api/admin/bookings", { cache: "no-store" });
   if (response.status === 401 || response.status === 403) { window.location.href = "admin-login.html"; return; }
 
   const data = await response.json();
   const bookings = data.bookings || [];
 
   try {
-    const meResponse = await fetch("/api/auth/me");
+    const meResponse = await fetch("/api/auth/me", { cache: "no-store" });
     const meData = await meResponse.json();
     const user = meData.user || {};
 
@@ -302,7 +302,7 @@ async function loadManager({ notify = false } = {}) {
 
 async function loadContent() {
   try {
-    const response = await fetch("/api/content");
+    const response = await fetch("/api/content", { cache: "no-store" });
     if (!response.ok) return;
 
     const data = await response.json();
