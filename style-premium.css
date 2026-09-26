@@ -375,33 +375,33 @@ button.cal-cell { cursor: pointer; }
 }
 
 /* ===== Testimonials (redesign) ===== */
-#testimonialContainer { grid-template-columns: repeat(auto-fit, minmax(260px, 380px)); justify-content: center; }
+#testimonialContainer { grid-template-columns: repeat(auto-fit, minmax(220px, 320px)); justify-content: center; gap: 12px; }
 .testimonial-card {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding: 26px 24px 22px;
+  gap: 12px;
+  padding: 18px 18px 16px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: linear-gradient(160deg, rgba(255,255,255,.05), rgba(255,255,255,.015));
   overflow: hidden;
 }
-.testimonial-quote-mark { align-self: flex-start; color: rgba(255,208,0,.35); font-size: 26px; }
-.testimonial-message { margin: 0; color: var(--white); font-size: 14px; line-height: 1.7; }
-.testimonial-meta { display: flex; align-items: center; gap: 12px; margin-top: auto; padding-top: 4px; }
+.testimonial-quote-mark { align-self: flex-start; color: rgba(255,208,0,.35); font-size: 22px; }
+.testimonial-message { margin: 0; color: var(--white); font-size: 13px; line-height: 1.55; }
+.testimonial-meta { display: flex; align-items: center; gap: 10px; margin-top: auto; padding-top: 2px; }
 .testimonial-avatar {
   display: grid;
-  flex: 0 0 40px;
+  flex: 0 0 34px;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background: rgba(255,208,0,.14);
   color: var(--yellow);
-  font: 700 15px 'Space Grotesk', sans-serif;
+  font: 700 14px 'Space Grotesk', sans-serif;
 }
 .testimonial-who { display: grid; gap: 4px; min-width: 0; }
-.testimonial-who strong { color: var(--white); font: 600 14px 'Space Grotesk', sans-serif; }
-.testimonial-stars { color: var(--yellow); font-size: 11px; letter-spacing: 2px; }
+.testimonial-who strong { color: var(--white); font: 600 13px 'Space Grotesk', sans-serif; }
+.testimonial-stars { color: var(--yellow); font-size: 10px; letter-spacing: 1px; }
 .testimonial-stars .is-empty { color: rgba(255,255,255,.16); }
