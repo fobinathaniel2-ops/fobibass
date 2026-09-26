@@ -847,6 +847,8 @@ td {
 .video-card {
   display: grid;
   grid-template-columns: minmax(0, 112px) minmax(0, 1fr);
+  width: min(100%, 560px);
+  justify-self: start;
   align-items: center;
   gap: 12px;
   padding: 10px;
