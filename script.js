@@ -183,15 +183,25 @@ async function hydrateSiteContent() {
     if (testimonialContainer && Array.isArray(data.testimonials) && data.testimonials.length) {
       const defaultFallback = testimonialContainer.querySelector("[data-fallback]");
       if (defaultFallback) defaultFallback.remove();
-      testimonialContainer.innerHTML = data.testimonials.map((testimonial) => `
+      testimonialContainer.innerHTML = data.testimonials.map((testimonial) => {
+        const name = String(testimonial.name || "").trim() || "Anonymous";
+        const initial = name.charAt(0).toUpperCase();
+        const rating = Math.min(5, Math.max(1, Number(testimonial.rating) || 5));
+        const starsHtml = Array.from({ length: 5 }, (_, i) => `<i class="fa-solid fa-star${i < rating ? "" : " is-empty"}" aria-hidden="true"></i>`).join("");
+        return `
         <article class="testimonial-card">
+          <i class="fa-solid fa-quote-left testimonial-quote-mark" aria-hidden="true"></i>
+          <p class="testimonial-message">${escapeHtml(testimonial.message)}</p>
           <div class="testimonial-meta">
-            <strong>${escapeHtml(testimonial.name)}</strong>
-            <span>${"★".repeat(Number(testimonial.rating || 5))}</span>
+            <span class="testimonial-avatar" aria-hidden="true">${escapeHtml(initial)}</span>
+            <div class="testimonial-who">
+              <strong>${escapeHtml(name)}</strong>
+              <span class="testimonial-stars" role="img" aria-label="${rating} out of 5 stars">${starsHtml}</span>
+            </div>
           </div>
-          <p>${escapeHtml(testimonial.message)}</p>
         </article>
-      `).join("");
+      `;
+      }).join("");
     }
 
     renderAvailability(data.availability);
