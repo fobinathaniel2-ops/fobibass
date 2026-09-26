@@ -1,5 +1,5 @@
 const express = require("express");
-const { readStore, update, now } = require("../config/store");
+const { readStore, update, now, defaults } = require("../config/store");
 const { publicAvailability } = require("../utils/availability");
 
 const router = express.Router();
@@ -9,10 +9,10 @@ router.get("/", async (req, res) => {
 
   res.json({
     settings: {
-      hero: store.settings?.hero || { title: "Feel The Groove. Hear The Difference.", subtitle: "Bass Guitarist - Live Performances - Studio Sessions - Worship - Lessons" },
-      bio: store.settings?.bio || { bio: "Fobee Bass brings rich low-end, musical pocket, and an unmistakable live presence to every room." },
-      contact: store.settings?.contact || { phone: "", email: "", location: "" },
-      socials: store.settings?.socials || { youtube: "", instagram: "", tiktok: "", x: "" },
+      hero: store.settings?.hero || defaults.settings.hero,
+      bio: store.settings?.bio || defaults.settings.bio,
+      contact: store.settings?.contact || defaults.settings.contact,
+      socials: store.settings?.socials || defaults.settings.socials,
     },
     availability: publicAvailability(store),
     videos: store.videos || [],

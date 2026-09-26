@@ -174,12 +174,27 @@ async function hydrateSiteContent() {
     const contact = settings.contact || {};
     const socials = settings.socials || {};
 
-    if (byId("heroTitle")) byId("heroTitle").innerHTML = hero.title || byId("heroTitle").innerHTML;
+    const heroTitle = byId("heroTitle");
+    const normalizeCopy = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    if (heroTitle && hero.title && normalizeCopy(heroTitle.innerText) !== normalizeCopy(hero.title)) {
+      heroTitle.textContent = hero.title;
+    }
     if (byId("heroSubtitle")) byId("heroSubtitle").textContent = hero.subtitle || byId("heroSubtitle").textContent;
     if (byId("bioText")) byId("bioText").textContent = bio.bio || byId("bioText").textContent;
-    if (byId("contactPhone")) byId("contactPhone").innerHTML = `<i class="fa-solid fa-phone"></i> ${contact.phone || byId("contactPhone").textContent.replace(/^\s*.*?\s/, "")}`;
-    if (byId("contactEmail")) byId("contactEmail").innerHTML = `<i class="fa-regular fa-envelope"></i> ${contact.email || byId("contactEmail").textContent.replace(/^\s*.*?\s/, "")}`;
-    if (byId("contactLocation")) byId("contactLocation").innerHTML = `<i class="fa-solid fa-location-dot"></i> ${contact.location || byId("contactLocation").textContent.replace(/^\s*.*?\s/, "")}`;
+    const setContactText = (id, iconClass, value) => {
+      const element = byId(id);
+      if (!element) return;
+      const icon = element.querySelector("i") || document.createElement("i");
+      const text = String(value || element.textContent || "").trim();
+      icon.className = iconClass;
+      icon.setAttribute("aria-hidden", "true");
+      element.replaceChildren(icon, document.createTextNode(` ${text}`));
+    };
+    setContactText("contactPhone", "fa-solid fa-phone", contact.phone);
+    setContactText("contactEmail", "fa-regular fa-envelope", contact.email);
+    setContactText("contactLocation", "fa-solid fa-location-dot", contact.location);
+    const contactEmailLink = document.querySelector('.contact-actions a[href^="mailto:"]');
+    if (contactEmailLink && contact.email) contactEmailLink.href = `mailto:${contact.email}`;
 
     const socialLinkTargets = {
       youtube: document.querySelector('.social-links a[aria-label="YouTube"]'),
