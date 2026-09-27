@@ -112,6 +112,7 @@ if (testimonialForm) testimonialForm.addEventListener("submit", async (event) =>
     name: String(formData.get("testimonialName") || "").trim(),
     message: String(formData.get("testimonialMessage") || "").trim(),
     rating: Number(formData.get("testimonialRatingValue") || 5),
+    eventType: String(formData.get("testimonialEventType") || "").trim(),
   };
 
   const status = byId("testimonialFormStatus");
@@ -218,28 +219,49 @@ async function hydrateSiteContent() {
       `).join("");
     }
 
+    const testimonialEmptyState = byId("testimonialEmptyState");
     const testimonialContainer = byId("testimonialContainer");
-    if (testimonialContainer && Array.isArray(data.testimonials) && data.testimonials.length) {
-      const testimonialCards = data.testimonials.map((testimonial) => {
+    if (testimonialEmptyState && Array.isArray(data.testimonials)) testimonialEmptyState.style.display = data.testimonials.length ? "none" : "";
+    if (testimonialContainer && Array.isArray(data.testimonials)) {
+      testimonialContainer.innerHTML = data.testimonials.map((testimonial) => {
         const name = String(testimonial.name || "").trim() || "Anonymous";
-        const initial = name.charAt(0).toUpperCase();
-        const rating = Math.min(5, Math.max(1, Number(testimonial.rating) || 5));
-        const starsHtml = Array.from({ length: 5 }, (_, i) => `<i class="fa-solid fa-star${i < rating ? "" : " is-empty"}" aria-hidden="true"></i>`).join("");
+        const initials = name.split(/\s+/).slice(0, 2).map((word) => word.charAt(0).toUpperCase()).join("") || "?";
+        const rating = Math.min(5, Math.max(0, Number(testimonial.rating) || 0));
+        const fillPercent = (rating / 5) * 100;
+        const outlineStars = Array.from({ length: 5 }, () => '<i class="fa-regular fa-star"></i>').join("");
+        const filledStars = Array.from({ length: 5 }, () => '<i class="fa-solid fa-star"></i>').join("");
+        const eventType = String(testimonial.eventType || "").trim();
+        const rawDate = testimonial.eventDate || testimonial.createdAt || "";
+        const dateMatch = String(rawDate).match(/^(\d{4})-(\d{2})-(\d{2})/);
+        const dateLabel = dateMatch ? new Date(Number(dateMatch[1]), Number(dateMatch[2]) - 1, Number(dateMatch[3])).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "";
+        const showFooter = Boolean(dateLabel || eventType);
+
         return `
         <article class="testimonial-card">
-          <i class="fa-solid fa-quote-left testimonial-quote-mark" aria-hidden="true"></i>
-          <p class="testimonial-message">${escapeHtml(testimonial.message)}</p>
-          <div class="testimonial-meta">
-            <span class="testimonial-avatar" aria-hidden="true">${escapeHtml(initial)}</span>
+          <i class="fa-solid fa-quote-right testimonial-quote-mark" aria-hidden="true"></i>
+          <div class="testimonial-head">
+            <span class="testimonial-avatar" aria-hidden="true">${escapeHtml(initials)}</span>
             <div class="testimonial-who">
-              <strong>${escapeHtml(name)}</strong>
-              <span class="testimonial-stars" role="img" aria-label="${rating} out of 5 stars">${starsHtml}</span>
+              <div class="testimonial-name-row">
+                <strong>${escapeHtml(name)}</strong>
+                ${testimonial.verified ? '<i class="fa-solid fa-circle-check testimonial-verified" title="Verified client" aria-label="Verified client"></i>' : ""}
+              </div>
+              <span class="star-rating-display" role="img" aria-label="${rating} out of 5 stars">
+                <span class="stars-outline">${outlineStars}</span>
+                <span class="stars-fill" style="width:${fillPercent}%">${filledStars}</span>
+              </span>
+              ${eventType ? `<span class="testimonial-event-subtitle">${escapeHtml(eventType)}</span>` : ""}
             </div>
           </div>
+          <p class="testimonial-message">&ldquo;${escapeHtml(testimonial.message)}&rdquo;</p>
+          ${showFooter ? `
+          <div class="testimonial-footer">
+            ${dateLabel ? `<span class="testimonial-date"><i class="fa-regular fa-calendar" aria-hidden="true"></i>${escapeHtml(dateLabel)}</span>` : "<span></span>"}
+            ${eventType ? `<span class="testimonial-pill"><i class="fa-solid fa-music" aria-hidden="true"></i>${escapeHtml(eventType)}</span>` : ""}
+          </div>` : ""}
         </article>
       `;
       }).join("");
-      testimonialContainer.innerHTML = testimonialCards;
     }
 
     renderAvailability(data.availability);

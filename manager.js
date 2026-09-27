@@ -214,8 +214,86 @@ function renderAvailabilityList(data) {
 async function refreshAvailabilityList() {
   const response = await fetch("/api/admin/content", { cache: "no-store" });
   if (!response.ok) return;
-  renderAvailabilityList(await response.json());
+  const data = await response.json();
+  renderAvailabilityList(data);
+  renderTestimonialAdminList(data.testimonials);
 }
+
+function renderTestimonialAdminList(testimonials) {
+  const list = document.getElementById("testimonialAdminList");
+  if (!list) return;
+  const items = Array.isArray(testimonials) ? testimonials : [];
+
+  list.innerHTML = items.length ? items.map((item) => {
+    const rating = Math.min(5, Math.max(0, Number(item.rating) || 0));
+    const stars = Array.from({ length: 5 }, (_, i) => `<i class="fa-solid fa-star${i < Math.round(rating) ? "" : " is-empty"}" aria-hidden="true"></i>`).join("");
+    return `
+      <div class="testimonial-admin-row">
+        <div class="testimonial-admin-info">
+          <div class="testimonial-admin-name">
+            <strong>${escapeHtml(item.name)}</strong>
+            ${item.verified ? '<i class="fa-solid fa-circle-check testimonial-verified" title="Verified"></i>' : ""}
+            ${item.eventType ? `<span class="testimonial-admin-tag">${escapeHtml(item.eventType)}</span>` : ""}
+          </div>
+          <span class="testimonial-admin-stars">${stars}</span>
+          <p>${escapeHtml(item.message)}</p>
+        </div>
+        <button type="button" class="testimonial-delete-button" data-testimonial-id="${escapeHtml(item.id)}" aria-label="Delete testimonial from ${escapeHtml(item.name)}"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
+      </div>
+    `;
+  }).join("") : '<div class="list-empty">No testimonials yet.</div>';
+}
+
+const testimonialAdminForm = document.getElementById("testimonialAdminForm");
+if (testimonialAdminForm) {
+  testimonialAdminForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const payload = {
+      name: document.getElementById("testimonialAdminName").value.trim(),
+      message: document.getElementById("testimonialAdminMessage").value.trim(),
+      rating: Number(document.getElementById("testimonialAdminRating").value),
+      eventType: document.getElementById("testimonialAdminEventType").value,
+      eventDate: document.getElementById("testimonialAdminDate").value,
+      verified: document.getElementById("testimonialAdminVerified").checked,
+    };
+    if (!payload.name || !payload.message) return;
+
+    try {
+      const response = await fetch("/api/admin/content/testimonials", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Could not add testimonial.");
+      testimonialAdminForm.reset();
+      await refreshAvailabilityList();
+    } catch (error) {
+      showPageMessageModal({ title: "Could not add testimonial", message: error.message || "Please try again.", buttonText: "OK" });
+    }
+  });
+}
+
+document.addEventListener("click", async (event) => {
+  const deleteButton = event.target.closest("[data-testimonial-id]");
+  if (!deleteButton) return;
+  const confirmed = await confirmModal({
+    title: "Delete this testimonial?",
+    message: "This removes it from your website. This cannot be undone.",
+    confirmText: "Delete",
+    danger: true,
+  });
+  if (!confirmed) return;
+
+  try {
+    const response = await fetch("/api/admin/content/testimonials/" + encodeURIComponent(deleteButton.dataset.testimonialId) + "/delete", { method: "POST" });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "Could not delete testimonial.");
+    await refreshAvailabilityList();
+  } catch (error) {
+    showPageMessageModal({ title: "Delete failed", message: error.message || "Could not delete testimonial.", buttonText: "Try again" });
+  }
+});
 
 async function loadManager({ notify = false } = {}) {
   const response = await fetch("/api/admin/bookings", { cache: "no-store" });

@@ -153,8 +153,9 @@
     <section id="testimonials" class="content-section">
       <div class="section-kicker">// KIND WORDS</div>
       <h2>Client Testimonials</h2>
-      <div class="empty-content testimonial-empty"><i class="fa-solid fa-quote-left" aria-hidden="true"></i><div><strong>Your experience matters.</strong><span>This is the space for client stories, kind words, and the moments we create together.</span></div><button class="testimonial-action" type="button" data-open-testimonial>Share your experience <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button></div>
+      <div class="empty-content testimonial-empty" id="testimonialEmptyState"><i class="fa-solid fa-quote-left" aria-hidden="true"></i><div><strong>Your experience matters.</strong><span>This is the space for client stories, kind words, and the moments we create together.</span></div></div>
       <div id="testimonialContainer"></div>
+      <div class="testimonial-cta"><button class="testimonial-action" type="button" data-open-testimonial>Share your experience <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button></div>
     </section>
 
     <section class="availability-section">
@@ -221,6 +222,7 @@
           <button type="button" class="rating-star is-selected" data-rating="4" role="radio" aria-label="4 stars"><i class="fa-solid fa-star"></i></button>
           <button type="button" class="rating-star is-selected" data-rating="5" role="radio" aria-label="5 stars"><i class="fa-solid fa-star"></i></button>
           <input type="hidden" id="testimonialRatingValue" name="testimonialRatingValue" value="5">
+        <select id="testimonialEventType" name="testimonialEventType" aria-label="Event type (optional)"><option value="">Event type (optional)</option><option>Live Concert</option><option>Church Service</option><option>Studio Recording</option><option>Wedding</option><option>Private Event</option></select>
           <span class="rating-caption" id="ratingCaption">5 / 5</span>
         </div>
         <textarea id="testimonialMessage" name="testimonialMessage" placeholder="Your experience *" required></textarea>

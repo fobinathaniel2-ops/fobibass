@@ -289,6 +289,73 @@ Approved
   <div id="availabilityList"></div>
 
 </section>
+<section class="testimonial-panel">
+
+  <h2><i class="fa-solid fa-comment-dots" aria-hidden="true"></i> Manage Testimonials</h2>
+
+  <p class="availability-help">
+    Client testimonials sent through your website appear below automatically. You can also add a
+    testimonial yourself (for a client who told you in person, for example) and optionally mark it
+    as verified.
+  </p>
+
+  <form id="testimonialAdminForm" class="availability-form">
+    <label class="field">
+      <span>Client name</span>
+      <input id="testimonialAdminName" required maxlength="60">
+    </label>
+
+    <label class="field">
+      <span>Rating</span>
+      <select id="testimonialAdminRating">
+        <option value="5">5 stars</option>
+        <option value="4.5">4.5 stars</option>
+        <option value="4">4 stars</option>
+        <option value="3.5">3.5 stars</option>
+        <option value="3">3 stars</option>
+        <option value="2.5">2.5 stars</option>
+        <option value="2">2 stars</option>
+        <option value="1.5">1.5 stars</option>
+        <option value="1">1 star</option>
+      </select>
+    </label>
+
+    <label class="field">
+      <span>Event type (optional)</span>
+      <select id="testimonialAdminEventType">
+        <option value="">No event type</option>
+        <option>Live Concert</option>
+        <option>Church Service</option>
+        <option>Studio Recording</option>
+        <option>Wedding</option>
+        <option>Private Event</option>
+      </select>
+    </label>
+
+    <label class="field">
+      <span>Event date (optional)</span>
+      <input id="testimonialAdminDate" type="date">
+    </label>
+
+    <label class="field field-wide testimonial-verified-field">
+      <input id="testimonialAdminVerified" type="checkbox">
+      <span>Mark as a verified client</span>
+    </label>
+
+    <label class="field field-wide">
+      <span>What they said</span>
+      <textarea id="testimonialAdminMessage" required maxlength="400" rows="3"></textarea>
+    </label>
+
+    <button type="submit" class="availability-save">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i> Add testimonial
+    </button>
+  </form>
+
+  <h3 class="availability-subtitle">All testimonials</h3>
+  <div id="testimonialAdminList"></div>
+
+</section>
 <!-- ================= HERO EDIT ================= -->
 <section>
 
