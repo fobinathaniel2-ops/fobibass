@@ -353,10 +353,10 @@ async function loadContent() {
                 <strong>${escapeHtml(item.title || "Untitled video")}</strong>
                 <span>${escapeHtml(item.category || "video")}</span>
               </div>
-              <div class="video-actions">
-                <a href="${escapeHtml(item.url || item.cover || "#")}" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> Open</a>
-                <button type="button" class="video-delete-button" data-video-id="${escapeHtml(item.id)}" data-video-title="${escapeHtml(item.title || "Untitled video")}" aria-label="Delete ${escapeHtml(item.title || "Untitled video")}" title="Delete video"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
-              </div>
+            </div>
+            <div class="video-actions">
+              <a href="${escapeHtml(item.url || item.cover || "#")}" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> Open</a>
+              <button type="button" class="video-delete-button" data-video-id="${escapeHtml(item.id)}" data-video-title="${escapeHtml(item.title || "Untitled video")}" aria-label="Delete ${escapeHtml(item.title || "Untitled video")}" title="Delete video"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
             </div>
           </div>
         `).join("")

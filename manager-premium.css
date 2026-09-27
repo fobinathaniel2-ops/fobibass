@@ -847,7 +847,7 @@ td {
 .video-card {
   display: grid;
   grid-template-columns: minmax(0, 96px) minmax(0, 1fr);
-  width: min(100%, 420px);
+  width: min(100%, 360px);
   justify-self: start;
   align-items: center;
   gap: 10px;
@@ -905,6 +905,7 @@ td {
 }
 .video-actions {
   display: inline-flex;
+  grid-column: 1 / -1;
   flex: 0 0 auto;
   align-items: center;
   gap: 8px;
