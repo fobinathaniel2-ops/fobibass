@@ -279,38 +279,19 @@ router.post("/content/services", verifyAdminAuth, async (req, res) => {
 });
 
 router.post("/content/testimonials", verifyAdminAuth, async (req, res) => {
-  const { name, message, rating, eventType, eventDate, verified } = req.body || {};
+  const { name, message, rating } = req.body || {};
   if (!name || !message) return res.status(400).json({ error: "Name and message are required." });
-
-  const safeRating = Math.round((Math.min(5, Math.max(1, Number(rating) || 5))) * 2) / 2;
-  const safeDate = isValidDate(eventDate) ? eventDate : "";
 
   await update((store) => {
     store.testimonials = store.testimonials || [];
     store.testimonials.push({
       id: Date.now().toString(),
-      name: String(name).trim(),
-      message: String(message).trim(),
-      rating: safeRating,
-      eventType: String(eventType || "").trim().slice(0, 40),
-      eventDate: safeDate,
-      verified: Boolean(verified),
-      createdAt: new Date().toISOString(),
-      source: "admin",
+      name,
+      message,
+      rating: Number(rating || 5),
     });
   });
 
-  return res.json({ ok: true });
-});
-
-router.post("/content/testimonials/:id/delete", verifyAdminAuth, async (req, res) => {
-  const removed = await update((store) => {
-    const before = (store.testimonials || []).length;
-    store.testimonials = (store.testimonials || []).filter((item) => String(item.id) !== req.params.id);
-    return before - store.testimonials.length;
-  });
-
-  if (!removed) return res.status(404).json({ error: "Testimonial not found." });
   return res.json({ ok: true });
 });
 

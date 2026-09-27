@@ -25,7 +25,6 @@ router.post("/testimonials", async (req, res) => {
   const name = String(req.body?.name || "").trim();
   const message = String(req.body?.message || "").trim();
   const rating = Number(req.body?.rating || 5);
-  const eventType = String(req.body?.eventType || "").trim().slice(0, 40);
 
   if (!name || !message) {
     return res.status(400).json({ error: "Name and message are required." });
@@ -38,9 +37,6 @@ router.post("/testimonials", async (req, res) => {
       name,
       message,
       rating: Number.isFinite(rating) ? Math.min(Math.max(rating, 1), 5) : 5,
-      eventType,
-      verified: false,
-      source: "public",
       createdAt: now(),
     });
   });
