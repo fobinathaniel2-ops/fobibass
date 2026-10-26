@@ -5,6 +5,8 @@ const { readStore, update, now } = require("../config/store");
 const { setSession, clearSession, getUser } = require("../middleware/sessionAuth");
 const { sendMail } = require("../config/mailer");
 const { otpEmailTemplate } = require("../templates/emailTemplates");
+const { generateAuthenticationOptions, verifyAuthenticationResponse } = require("@simplewebauthn/server");
+const { setChallenge, takeChallenge, newChallenge, getWebAuthnOrigin, getRpID } = require("../utils/webauthn");
 
 const router = express.Router();
 const otpExpiry = Number(process.env.OTP_EXPIRY_MINUTES || 10) * 60 * 1000;
@@ -31,6 +33,54 @@ router.get("/biometric-status", async (req, res) => {
 
   const user = (await readStore()).users.find((item) => item.email === email && item.active !== false);
   res.json({ biometricEnabled: Boolean(user?.biometricEnabled) });
+});
+
+router.post("/biometric-login-options", async (req, res) => {
+  const email = String(req.body.email || "").trim().toLowerCase();
+  const user = (await readStore()).users.find((entry) => entry.email === email && entry.active !== false && entry.role === "admin" && entry.biometricEnabled);
+  if (!user) return res.status(404).json({ error: "Biometric sign-in is not enabled for this account." });
+
+  const challenge = newChallenge();
+  setChallenge(`login:${user.id}`, challenge);
+  res.json(await generateAuthenticationOptions({
+    rpID: getRpID(req),
+    challenge,
+    allowCredentials: (user.biometricCredentials || []).map((credential) => ({ id: credential.id, transports: credential.transports })),
+    userVerification: "preferred",
+  }));
+});
+
+router.post("/biometric-login", async (req, res) => {
+  try {
+    const email = String(req.body.email || "").trim().toLowerCase();
+    const store = await readStore();
+    const user = store.users.find((entry) => entry.email === email && entry.active !== false && entry.role === "admin" && entry.biometricEnabled);
+    if (!user) return res.status(404).json({ error: "Biometric sign-in is not enabled for this account." });
+
+    const credential = (user.biometricCredentials || []).find((item) => item.id === req.body.credential?.id);
+    if (!credential) return res.status(400).json({ error: "This passkey is not registered for the admin account." });
+
+    const verification = await verifyAuthenticationResponse({
+      response: req.body.credential,
+      expectedChallenge: takeChallenge(`login:${user.id}`),
+      expectedOrigin: getWebAuthnOrigin(req),
+      expectedRPID: getRpID(req),
+      credential: { id: credential.id, publicKey: Buffer.from(credential.publicKey, "base64url"), counter: credential.counter, transports: credential.transports },
+      requireUserVerification: true,
+    });
+    if (!verification.verified) throw new Error("Biometric sign-in was not verified.");
+
+    await update((currentStore) => {
+      const account = currentStore.users.find((entry) => entry.id === user.id);
+      const savedCredential = account?.biometricCredentials?.find((item) => item.id === credential.id);
+      if (savedCredential) savedCredential.counter = verification.authenticationInfo.newCounter;
+      if (account) account.lastLogin = now();
+    });
+    setSession(res, user);
+    res.json({ ok: true, user: { id: user.id, email: user.email, role: user.role } });
+  } catch (error) {
+    res.status(400).json({ error: error.message || "Could not sign in with biometrics." });
+  }
 });
 
 router.post("/logout", (req, res) => { clearSession(res); res.json({ ok: true }); });

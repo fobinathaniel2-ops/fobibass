@@ -5,6 +5,8 @@ const cloudinaryAssetFromUrl = require("../utils/cloudinaryAsset");
 const verifyAdminAuth = require("../middleware/verifyAdminAuth");
 const { signToken, verifyToken } = require("../utils/tokens");
 const { isValidDate, adminOverview, dateConflict } = require("../utils/availability");
+const { generateRegistrationOptions, verifyRegistrationResponse } = require("@simplewebauthn/server");
+const { setChallenge, takeChallenge, newChallenge, getWebAuthnOrigin, getRpID } = require("../utils/webauthn");
 
 const router = express.Router();
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "").split(",").map((email) => email.trim().toLowerCase()).filter(Boolean);
@@ -110,10 +112,71 @@ router.post("/biometric-access", verifyAdminAuth, async (req, res) => {
 
   await update((store) => {
     const user = store.users.find((entry) => entry.id === req.user.id);
-    if (user) user.biometricEnabled = enabled;
+    if (user) {
+      user.biometricEnabled = enabled;
+      if (!enabled) user.biometricCredentials = [];
+    }
   });
 
   res.json({ ok: true, biometricEnabled: enabled });
+});
+
+router.post("/biometric-registration-options", verifyAdminAuth, async (req, res) => {
+  const store = await readStore();
+  const user = store.users.find((entry) => entry.id === req.user.id);
+  if (!user) return res.status(404).json({ error: "Admin account not found." });
+
+  const challenge = newChallenge();
+  setChallenge(`register:${user.id}`, challenge);
+  const options = await generateRegistrationOptions({
+    rpName: "FOBIbass Admin",
+    rpID: getRpID(req),
+    userID: Buffer.from(user.id),
+    userName: user.email,
+    userDisplayName: user.name || user.email,
+    challenge,
+    excludeCredentials: (user.biometricCredentials || []).map((credential) => ({
+      id: credential.id,
+      transports: credential.transports,
+    })),
+    authenticatorSelection: { residentKey: "preferred", userVerification: "preferred" },
+  });
+  res.json(options);
+});
+
+router.post("/biometric-registration", verifyAdminAuth, async (req, res) => {
+  try {
+    const store = await readStore();
+    const user = store.users.find((entry) => entry.id === req.user.id);
+    if (!user) return res.status(404).json({ error: "Admin account not found." });
+
+    const verification = await verifyRegistrationResponse({
+      response: req.body.credential,
+      expectedChallenge: takeChallenge(`register:${user.id}`),
+      expectedOrigin: getWebAuthnOrigin(req),
+      expectedRPID: getRpID(req),
+      requireUserVerification: true,
+    });
+    if (!verification.verified || !verification.registrationInfo) throw new Error("Biometric registration was not verified.");
+
+    const { credential, credentialDeviceType, credentialBackedUp } = verification.registrationInfo;
+    await update((currentStore) => {
+      const account = currentStore.users.find((entry) => entry.id === user.id);
+      if (!account) return;
+      account.biometricEnabled = true;
+      account.biometricCredentials = [...(account.biometricCredentials || []).filter((item) => item.id !== credential.id), {
+        id: credential.id,
+        publicKey: Buffer.from(credential.publicKey).toString("base64url"),
+        counter: credential.counter,
+        deviceType: credentialDeviceType,
+        backedUp: credentialBackedUp,
+        transports: credential.transports || [],
+      }];
+    });
+    res.json({ ok: true, biometricEnabled: true });
+  } catch (error) {
+    res.status(400).json({ error: error.message || "Could not register this device." });
+  }
 });
 
 router.get("/content", verifyAdminAuth, async (req, res) => {

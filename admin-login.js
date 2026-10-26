@@ -1,3 +1,5 @@
+import { parseRequestOptions, serializeAssertion } from './admin-biometric.js';
+
 const form = document.getElementById("loginForm");
 const error = document.getElementById("errorMessage");
 const biometricStatus = document.getElementById("biometricStatus");
@@ -83,20 +85,30 @@ biometricLoginBtn?.addEventListener("click", async () => {
       return;
     }
 
-    setBiometricStatus("Checking for a registered passkey on this device...", "neutral");
-    const result = await navigator.credentials.get({
-      mediation: "required",
-      publicKey: {
-        challenge: new Uint8Array(32),
-        timeout: 60000,
-        rpId: window.location.hostname,
-        userVerification: "preferred"
-      }
+    setBiometricStatus("Requesting your registered passkey...", "neutral");
+    const optionsResponse = await fetch("/api/auth/biometric-login-options", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
     });
+    const options = await optionsResponse.json().catch(() => ({}));
+    if (!optionsResponse.ok) throw new Error(options.error || "No registered passkey was found.");
 
-    if (result && email) {
-      setBiometricStatus("Passkey detected. Continue with your admin email and password flow or complete registration on a passkey-enabled server.", "success");
-    }
+    const credential = await navigator.credentials.get({
+      mediation: "required",
+      publicKey: parseRequestOptions(options)
+    });
+    if (!credential) throw new Error("Biometric sign-in was cancelled.");
+
+    const response = await fetch("/api/auth/biometric-login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, credential: serializeAssertion(credential) })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "Biometric sign-in failed.");
+    setBiometricStatus("Biometric sign-in successful. Opening the dashboard...", "success");
+    window.location.href = "manager.html";
   } catch (err) {
     const message = err?.message || "No registered biometric credential was found on this device.";
     setBiometricStatus(`Biometric sign-in is not configured yet for this account: ${message}`, "error");

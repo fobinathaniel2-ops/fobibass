@@ -677,5 +677,22 @@ background:#1b5e20;
 
 }
 
+.site-install-button {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 1000;
+  min-height: 48px;
+  margin: 0;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 8px;
+  background: #f0c349;
+  color: #111111;
+  font-weight: 700;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+
 
 

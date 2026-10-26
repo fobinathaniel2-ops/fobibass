@@ -1,3 +1,5 @@
+import { parseCreationOptions, serializeCredential } from './admin-biometric.js';
+
 const showPageMessageModal = ({ title = "Notice", message = "Something happened.", buttonText = "OK" } = {}) => {
   let modal = document.getElementById("pageMessageModal");
   if (!modal) {
@@ -725,18 +727,37 @@ if (bookingFilter) {
 
 if (biometricToggle) {
   biometricToggle.addEventListener("change", async () => {
+    const enabled = biometricToggle.checked;
     try {
+      if (enabled) {
+        const optionsResponse = await fetch("/api/admin/biometric-registration-options", { method: "POST", headers: { "Content-Type": "application/json" } });
+        const options = await optionsResponse.json().catch(() => ({}));
+        if (!optionsResponse.ok) throw new Error(options.error || "Could not prepare biometric registration.");
+
+        const credential = await navigator.credentials.create({ publicKey: parseCreationOptions(options) });
+        if (!credential) throw new Error("Biometric registration was cancelled.");
+        const response = await fetch("/api/admin/biometric-registration", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ credential: serializeCredential(credential) }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || "Could not register this device.");
+        setBiometricStatusText(true);
+        return;
+      }
+
       const response = await fetch("/api/admin/biometric-access", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled: biometricToggle.checked }),
+        body: JSON.stringify({ enabled: false }),
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || "Could not update biometric access.");
-      setBiometricStatusText(Boolean(data.biometricEnabled));
+      if (!response.ok) throw new Error(data.error || "Could not disable biometric access.");
+      setBiometricStatusText(false);
     } catch (error) {
       showPageMessageModal({ title: "Biometric update failed", message: error.message || "Could not update biometric access.", buttonText: "Ok" });
-      biometricToggle.checked = !biometricToggle.checked;
+      biometricToggle.checked = !enabled;
     }
   });
 }
