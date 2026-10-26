@@ -22,6 +22,7 @@ export const serializeCredential = (credential) => {
     response: {},
     clientExtensionResults: credential.getClientExtensionResults(),
   };
+  if (typeof credential.getTransports === "function") result.transports = credential.getTransports();
   for (const [key, value] of Object.entries(credential.response)) {
     if (value instanceof ArrayBuffer) result.response[key] = bytesToBase64URL(value);
   }

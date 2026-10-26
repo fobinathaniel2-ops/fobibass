@@ -19,14 +19,22 @@ function newChallenge() {
   return crypto.randomBytes(32);
 }
 
+function getFirstForwardedValue(req, headerName) {
+  const value = req.get(headerName);
+  return value ? value.split(",")[0].trim() : "";
+}
+
+function getPublicHost(req) {
+  return getFirstForwardedValue(req, "x-forwarded-host") || req.get("host") || req.hostname;
+}
+
 function getWebAuthnOrigin(req) {
-  const forwardedProto = req.get("x-forwarded-proto");
-  const protocol = forwardedProto ? forwardedProto.split(",")[0].trim() : req.protocol;
-  return `${protocol}://${req.get("host")}`;
+  const protocol = getFirstForwardedValue(req, "x-forwarded-proto") || req.protocol;
+  return `${protocol}://${getPublicHost(req).replace(/:\d+$/, "")}`;
 }
 
 function getRpID(req) {
-  return req.hostname;
+  return getPublicHost(req).split(":")[0].replace(/^www\./, "");
 }
 
 module.exports = { setChallenge, takeChallenge, newChallenge, getWebAuthnOrigin, getRpID };
