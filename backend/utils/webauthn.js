@@ -4,7 +4,8 @@ const challenges = new Map();
 const CHALLENGE_TTL_MS = 5 * 60 * 1000;
 
 function setChallenge(key, challenge) {
-  challenges.set(key, { challenge, expiresAt: Date.now() + CHALLENGE_TTL_MS });
+  const expectedChallenge = Buffer.isBuffer(challenge) ? challenge.toString("base64url") : String(challenge);
+  challenges.set(key, { challenge: expectedChallenge, expiresAt: Date.now() + CHALLENGE_TTL_MS });
 }
 
 function takeChallenge(key) {
@@ -15,7 +16,7 @@ function takeChallenge(key) {
 }
 
 function newChallenge() {
-  return crypto.randomBytes(32).toString("base64url");
+  return crypto.randomBytes(32);
 }
 
 function getWebAuthnOrigin(req) {
