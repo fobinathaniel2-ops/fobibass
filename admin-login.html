@@ -6,6 +6,11 @@
 <meta charset="UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="FOBI Admin">
+<link rel="manifest" href="admin-manifest.json">
+<link rel="apple-touch-icon" href="admin-icon-192.png">
 
 <title>Fobee Bass Admin Login</title>
 
@@ -97,14 +102,16 @@ Use Biometric
 
 </form>
 
+<button type="button" id="installAdminApp">Install Admin App</button>
+<p class="auth-subtitle" id="installAdminStatus" aria-live="polite">Checking admin app installation availability...</p>
 
 </div>
 
 
 
 
-
 <script type="module" src="admin-login.js"></script>
+<script type="module" src="admin-pwa.js"></script>
 
 
 </body>
